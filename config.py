@@ -2,8 +2,8 @@
 from datetime import timedelta, datetime
 
 BOOKMAKER_URLS = [  # List of (url, name) – replace with real pre-match odds pages (e.g., Bet365 football upcoming)
-    ("https://www.odibets.com/", "Odibets"),
-    ("https://22bet.co.ke/", "22bet"),
+    ("https://www.odibets.com/sports/soccer", "Odibets"),
+    ("https://www.mozzartbet.co.ke/en#/betting/?sid=1", "Mozzartbet"),
 ]
 
 USER_AGENTS = [

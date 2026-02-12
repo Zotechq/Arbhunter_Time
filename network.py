@@ -10,11 +10,13 @@ import random
 import time
 import socks
 import socket
-from config import TOR_PROXY, CONTROL_PORT, CONTROL_PASSWORD, USER_AGENTS, REQUEST_DELAY_MIN, REQUEST_DELAY_MAX, IP_RENEW_EVERY_REQUESTS
+from config import TOR_PROXY, CONTROL_PORT, CONTROL_PASSWORD, USER_AGENTS, REQUEST_DELAY_MIN, REQUEST_DELAY_MAX, \
+    IP_RENEW_EVERY_REQUESTS
 
 # Set global Tor proxy
 socks.set_default_proxy(socks.SOCKS5, "127.0.0.1", 9050)
 socket.socket = socks.socksocket
+
 
 def renew_tor_ip():
     with Controller.from_port(port=CONTROL_PORT) as controller:

@@ -17,16 +17,18 @@ abbrev_map = {
     'int': 'inter milan',
     'mil': 'ac milan',
     'nap': 'napoli',
-    'epl': 'premier league',
-    'laliga': 'la liga',
-    'ucl': 'champions league'
 }
 
-stop_words = {"fc", "united", "sc", "club", "real", "st", "bc"}
+stop_words = {"fc", "sc", "club", "st", "bc", "cf"}
 
 def normalize_name(name):
     name = name.lower()
-    name = re.sub(r'[^a-z0-9\s]', '', name)  # Remove punctuation
+    # Replace separators with spaces
+    name = re.sub(r'[-_/]', ' ', name)
+    # Replace other special characters with spaces
+    name = re.sub(r'[^a-z0-9\s]', ' ', name)
+    # Collapse multiple spaces
+    name = re.sub(r'\s+', ' ', name)
     tokens = name.split()
     tokens = [abbrev_map.get(t, t) for t in tokens]
     filtered_tokens = [t for t in tokens if t not in stop_words]
@@ -55,3 +57,23 @@ def fuzzy_match(str1, str2, threshold=0.8):
     max_len = max(len(s1), len(s2))
     similarity = 1 - (dist / max_len) if max_len else 1
     return similarity >= threshold
+
+
+def group_fuzzy_matches(names, threshold=0.8):
+    groups = {}
+    used = set()
+
+    for i, name in enumerate(names):
+        if i in used:
+            continue
+
+        group_key = name
+        groups[group_key] = [name]
+        used.add(i)
+
+        for j, other in enumerate(names):
+            if j not in used and fuzzy_match(name, other, threshold):
+                groups[group_key].append(other)
+                used.add(j)
+
+    return groups

@@ -19,6 +19,7 @@ def extract_matches(soup, bookie_name):
         odds_2 = float(row.find("span", class_="away-win-odd").text) if row.find("span",
                                                                                  class_="away-win-odd") else None
 
+
         try:
             kickoff = datetime.strptime(kickoff_str, "%Y-%m-%d %H:%M")
         except ValueError:
@@ -45,4 +46,5 @@ def extract_matches(soup, bookie_name):
                     "bookie": bookie_name,
                     "normalized_full": f"{home_norm} vs {away_norm} in {league_norm}"  # For fuzzy matching
                 })
+
     return matches

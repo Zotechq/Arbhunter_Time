@@ -1,9 +1,14 @@
-# Central configurations for ArbHunter
-from datetime import timedelta, datetime
+# config.py - Central configurations for ArbHunter
+from datetime import datetime, timedelta
 
-BOOKMAKER_URLS = [  # List of (url, name) – replace with real pre-match odds pages (e.g., Bet365 football upcoming)
-    ("https://www.betika.com/en-ke/sports/football", "Betika"),
-    ("https://www.ke.sportpesa.com/en/sports-betting/football-1", "SportPesa"),
+# ────────────────────────────────────────────────────────────────
+# New focus: Time-Discrepancy Hunting (identifying stale kickoff times)
+# ────────────────────────────────────────────────────────────────
+
+BOOKMAKER_URLS = [
+    ("https://www.odibets.com/sports/soccer", "Odibets"),
+    ("https://www.flashscore.com/football/kenya/premier-league/", "Flashscore"),
+    # Add more, e.g., ("https://www.flashscore.com/football/kenya/premier-league/", "Flashscore")
 ]
 
 USER_AGENTS = [
@@ -22,12 +27,16 @@ USER_AGENTS = [
 TOR_PROXY = "socks5://127.0.0.1:9050"
 CONTROL_PORT = 9051
 CONTROL_PASSWORD = None  # Set if configured in torrc
-CSV_MATCHES = "matches.csv"
-CSV_VARIATIONS = "matches_with_varying_times.csv"
-CSV_ARBS = "sure_bets.csv"
-MIN_TIME_BUFFER = timedelta(minutes=15)  # Pre-match filter
-MIN_ARB_PCT = 1.2  # Minimum arb %
-REFRESH_INTERVAL_MINUTES = 5  # Loop schedule
+
+CSV_MATCHES = "oddbets_matches.csv"
+CSV_VARIATIONS = "oddbets_matches_with_varying_times.csv"
+CSV_ARBS = "oddbets_arbs.csv"  # Deprioritized, but kept for optional use
+
+MIN_TIME_BUFFER = timedelta(minutes=15)
+TIME_VARIATION_THRESHOLD_MINUTES = 2  # Threshold for time discrepancies
+
+REFRESH_INTERVAL_MINUTES = 5
 REQUEST_DELAY_MIN = 1
 REQUEST_DELAY_MAX = 5
 IP_RENEW_EVERY_REQUESTS = 5
+MIN_ARB_PCT = 1.2  # Deprioritized

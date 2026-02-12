@@ -1,90 +1,58 @@
+# main.py - Entry point
+# New focus: Time-Discrepancy Hunting as primary output
+
 import time
 import schedule
-from config import REFRESH_INTERVAL_MINUTES, BOOKMAKER_URLS
+from config import REFRESH_INTERVAL_MINUTES, BOOKMAKER_URLS, CSV_MATCHES, CSV_VARIATIONS, CSV_ARBS
 from network import fetch_page
 from scraper import extract_matches
-from engine import detect_arbs, detect_variations
-from output import display_matches, log_to_csv
-from config import CSV_MATCHES, CSV_VARIATIONS, CSV_ARBS
+from engine import detect_variations, detect_arbs  # detect_arbs deprioritized
+from output import display_matches, display_time_variations, log_to_csv
 
-# Global counter for request tracking (used for IP renewal timing)
 request_counter = 0
 
 
 def main_loop():
-    """
-    Core loop that runs on schedule:
-    - Fetches data from all configured bookmakers
-    - Extracts and normalizes matches
-    - Detects arbitrage opportunities and time variations
-    - Displays results in console
-    - Logs everything to CSV files
-    """
     global request_counter
-    print(f"\n=== Starting scrape cycle at {time.strftime('%Y-%m-%d %H:%M:%S')} ===\n")
+    print(f"\n=== Time-Hunting cycle at {time.strftime('%Y-%m-%d %H:%M:%S')} ===\n")
 
     all_matches = []
 
-    # Fetch from each bookmaker
     for bookie_url, bookie_name in BOOKMAKER_URLS:
         request_counter += 1
         print(f"Scraping {bookie_name} ({bookie_url})...")
-
         soup = fetch_page(bookie_url, request_counter)
         if soup:
             matches = extract_matches(soup, bookie_name)
-            print(f"  → Found {len(matches)} pre-match events")
+            print(f"  → {len(matches)} events")
             all_matches.extend(matches)
-        else:
-            print(f"  → Failed to fetch from {bookie_name}")
 
     if not all_matches:
-        print("No matches scraped this cycle. Check URLs, Tor, or selectors.")
+        print("No matches this cycle.")
         return
 
-    # Display raw matches in console
-    print("\nCurrent Pre-Match Matches:")
     display_matches(all_matches)
-
-    # Log all scraped matches
     log_to_csv(all_matches, CSV_MATCHES)
 
-    # Detect and log time variations
     variations = detect_variations(all_matches)
     if variations:
-        print(f"\nFound {len(variations)} matches with varying kickoff times")
+        print(f"\nTIME VARIATIONS DETECTED ({len(variations)})")
+        display_time_variations(variations)
         log_to_csv(variations, CSV_VARIATIONS)
 
-    # Detect and log arbitrage opportunities
+    # Deprioritized arb detection – only log, no print
     arbs = detect_arbs(all_matches)
     if arbs:
-        print(f"\nARBS FOUND! ({len(arbs)} opportunities)")
-        for arb in arbs:
-            print(f"  {arb['home']} vs {arb['away']} ({arb['league']} @ {arb['kickoff']}): "
-                  f"{arb['arb_pct']}% arb")
-            print(f"     Best odds → 1: {arb['best_odds']['1']} ({arb['bookies']['1']}), "
-                  f"X: {arb['best_odds']['X']} ({arb['bookies']['X'] or 'N/A'}), "
-                  f"2: {arb['best_odds']['2']} ({arb['bookies']['2']})")
-        log_to_csv(arbs, CSV_ARBS)
-    else:
-        print("No arbs detected this cycle (above threshold).")
+        log_to_csv(arbs, CSV_ARBS)  # Optional silent logging
 
     print("Cycle complete.\n")
 
 
 if __name__ == "__main__":
-    print("ArbHunter Pre-Match Scraper v1.0 - Starting...")
-    print(f"Scheduled to run every {REFRESH_INTERVAL_MINUTES} minutes.")
-    print("Make sure Tor is running (port 9050/9051).")
-    print("Press Ctrl+C to stop.\n")
-
-    # Schedule the main loop
+    print("ArbHunter Time Hunter v2.0")
+    print(f"Running every {REFRESH_INTERVAL_MINUTES} min.\n")
     schedule.every(REFRESH_INTERVAL_MINUTES).minutes.do(main_loop)
-
-    # Run once immediately on startup (useful for testing)
-    main_loop()
-
-    # Keep the script alive
+    main_loop()  # Initial run
     while True:
         schedule.run_pending()
         time.sleep(1)

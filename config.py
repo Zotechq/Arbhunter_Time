@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 
 BOOKMAKER_URLS = [
     ("https://www.odibets.com/sports/soccer", "Odibets"),
-    ("https://www.flashscore.com/football/kenya/premier-league/", "Flashscore"),
+    #("https://www.flashscore.com/football/kenya/premier-league", "Flashscore"),
     # Add more, e.g., ("https://www.flashscore.com/football/kenya/premier-league/", "Flashscore")
 ]
 
@@ -24,7 +24,7 @@ USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 OPR/129.0.0.0"
 ]
 
-TOR_PROXY = "socks5://127.0.0.1:9050"
+TOR_PROXY = "socks5://127.0.0.1:9150"
 CONTROL_PORT = 9051
 CONTROL_PASSWORD = None  # Set if configured in torrc
 

@@ -21,9 +21,9 @@ def fetch_page(url, request_count, use_selenium=False):
     time.sleep(random.uniform(REQUEST_DELAY_MIN, REQUEST_DELAY_MAX))
 
     # 🔴 FORCE SELENIUM FOR ODIBETS (solves the empty page issue)
-    if "odibets.com" in url:
+    if "odibets.com" or "betika.com" in url:
         use_selenium = True
-        print("  ⚡ Using Selenium for Odibets (JavaScript required)")
+        print("  ⚡ Using Selenium for JavaScript site")
 
     if use_selenium:
         options = Options()

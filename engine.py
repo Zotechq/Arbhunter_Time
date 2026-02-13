@@ -72,7 +72,7 @@ def detect_arbs(matches, min_arb_pct=MIN_ARB_PCT):
 
     for m in matches:
         norm_full = m['normalized_full']
-        group_key = group_fuzzy_matches(norm_full, group_keys, 0.8)
+        group_key = group_fuzzy_matches(norm_full, threshold=0.8)
         if group_key not in group_keys:
             group_keys.append(group_key)
         grouped[group_key].append(m)

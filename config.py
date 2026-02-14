@@ -36,7 +36,7 @@ CSV_ARBS = "oddbets_arbs.csv"  # Deprioritized, but kept for optional use
 MIN_TIME_BUFFER = timedelta(minutes=15)
 TIME_VARIATION_THRESHOLD_MINUTES = 2  # Threshold for time discrepancies
 
-REFRESH_INTERVAL_MINUTES = 5
+REFRESH_INTERVAL_MINUTES = 30
 REQUEST_DELAY_MIN = 1
 REQUEST_DELAY_MAX = 5
 IP_RENEW_EVERY_REQUESTS = 5

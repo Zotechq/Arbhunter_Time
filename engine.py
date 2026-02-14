@@ -243,6 +243,95 @@ def detect_profitable_variations(matches):
     return profitable_opportunities
 
 
+def analyze_all_discrepancies(all_matches):
+    """Analyze all matches across bookmakers to find who's wrong"""
+    from helpers import fuzzy_match
+    from collections import defaultdict
+    from datetime import datetime
+
+    # Group matches by normalized name
+    match_groups = defaultdict(list)
+
+    for match in all_matches:
+        if not match.get('kickoff_time'):
+            continue
+
+        norm_full = match['normalized_full']
+
+        # Find matching group
+        found = False
+        for key in list(match_groups.keys()):
+            if fuzzy_match(norm_full, key):
+                match_groups[key].append(match)
+                found = True
+                break
+
+        if not found:
+            match_groups[norm_full].append(match)
+
+    # Analyze each group
+    discrepancies = []
+
+    for group_key, group_matches in match_groups.items():
+        if len(group_matches) < 2:
+            continue
+
+        # Collect all times by bookmaker
+        bookie_times = {}
+        for match in group_matches:
+            bookie = match['bookie']
+            kickoff = match['kickoff_time']
+            bookie_times[bookie] = kickoff
+
+        if len(bookie_times) < 2:
+            continue
+
+        # Find the most common time (majority)
+        from collections import Counter
+        times_list = [t.strftime('%H:%M') for t in bookie_times.values()]
+        time_counts = Counter(times_list)
+        majority_time_str = time_counts.most_common(1)[0][0]
+
+        # Convert majority time string to datetime.time for comparison
+        majority_time_obj = datetime.strptime(majority_time_str, '%H:%M').time()
+
+        # Find which bookies are wrong
+        wrong_bookies = []
+        all_times_display = {}  # 👈 CREATE THIS DICTIONARY
+
+        for bookie, kickoff_dt in bookie_times.items():
+            time_str = kickoff_dt.strftime('%H:%M')
+            all_times_display[bookie] = time_str  # 👈 STORE ALL TIMES HERE
+
+            if time_str != majority_time_str:
+                # Calculate gap in minutes
+                from datetime import datetime, timedelta
+                today = datetime.now().date()
+                kickoff_datetime = datetime.combine(today, kickoff_dt.time())
+                majority_datetime = datetime.combine(today, majority_time_obj)
+                gap = abs((kickoff_datetime - majority_datetime).total_seconds() / 60)
+
+                wrong_bookies.append({
+                    'bookie': bookie,
+                    'their_time': time_str,
+                    'gap_minutes': gap
+                })
+
+        if wrong_bookies:
+            # Get match details from first match
+            first_match = group_matches[0]
+
+            discrepancies.append({
+                'match': f"{first_match['home']} vs {first_match['away']}",
+                'league': first_match.get('league', 'Football'),
+                'correct_time': majority_time_str,
+                'wrong_bookies': wrong_bookies,
+                'all_times': all_times_display,  # 👈 ADD THIS KEY
+                'gap_summary': "\n".join([f"{w['bookie']}: {w['gap_minutes']:.0f}min" for w in wrong_bookies])
+            })
+
+    return discrepancies
+
 def detect_arbs(matches, min_profit_pct=1.2):
     """Detect arbitrage opportunities across bookmakers (deprioritized)"""
     from helpers import fuzzy_match

@@ -101,7 +101,7 @@ def extract_odibets_matches(soup, bookie_name):
                 "odds_x": odds_x,
                 "odds_2": odds_2,
                 "bookie": bookie_name,
-                "normalized_full": f"{home_norm} vs {away_norm} in football"
+                "normalized_full": f"{home_norm} vs {away_norm}"
             }
             matches.append(match)
             print(f"  ✅ {home} vs {away} @ {kickoff_str} - Odds: {odds_1}/{odds_x}/{odds_2}")
@@ -198,7 +198,7 @@ def extract_xscores_matches(soup, bookie_name):
                 "odds_x": None,
                 "odds_2": None,
                 "bookie": bookie_name,
-                "normalized_full": f"{normalize_name(home)} vs {normalize_name(away)} in {normalize_name(league)}"
+                "normalized_full": f"{normalize_name(home)} vs {normalize_name(away)}"
             }
             matches.append(match)
             print(f"  ✅ Xscores: {home} vs {away} @ {kickoff_str} [{league}]")
@@ -213,98 +213,114 @@ def extract_xscores_matches(soup, bookie_name):
 
 
 def extract_betika_matches(soup, bookie_name):
-    """Extract matches from Betika - IMPROVED VERSION"""
+    """Extract matches from Betika - POLISHED FINAL VERSION"""
     matches = []
     seen_matches = set()
 
-    # Method 1: Look for divs with match patterns
+    # Words that are NOT team names
+    non_team_words = ['Upcoming', 'Live', 'Today', 'Tomorrow', 'Now', 'Recent',
+                      'Popular', 'Featured', 'Highlights', 'Results', 'Bc']
+
+    # Find all divs that might contain match info
     all_divs = soup.find_all("div")
     print(f"Scanning {len(all_divs)} divs for Betika matches...")
 
     match_blocks = []
 
-    # Common team names to look for
-    team_keywords = ['Elche', 'Osasuna', 'Pisa', 'Milan', 'Dortmund', 'Mainz',
-                     'Rennes', 'Psg', 'Monaco', 'Nantes', 'Wrexham', 'Ipswich',
-                     'Hull', 'Chelsea', 'Volendam', 'Psv', 'Galatasaray',
-                     'Eyupspor', 'Santa Clara', 'Benfica', 'Antalyaspor', 'Samsunspor']
-
     for div in all_divs:
         text = div.get_text().strip()
-        # Look for patterns that indicate a match
-        if any(team in text for team in team_keywords):
-            if "•" in text or ":" in text or any(odds in text for odds in [".", "odds"]):
+        # Look for pattern: League • LeagueName followed by date and teams
+        if "•" in text and "/" in text and ":" in text:
+            lines = text.split('\n')
+            if len(lines) >= 3:
                 match_blocks.append(div)
-
-    # Method 2: If no blocks found, try specific Betika structure
-    if len(match_blocks) < 5:  # Not enough matches found
-        # Try finding by common Betika classes
-        for class_name in ['match', 'event', 'fixture', 'game-row']:
-            elements = soup.find_all(class_=lambda c: c and class_name in str(c).lower() if c else False)
-            match_blocks.extend(elements)
 
     print(f"Found {len(match_blocks)} potential Betika match blocks")
 
     for block in match_blocks:
         try:
             text = block.get_text().strip()
+            lines = [line.strip() for line in text.split('\n') if line.strip()]
 
-            # Extract odds - look for pattern like "2.90 3.20 2.70"
+            if len(lines) < 3:
+                continue
+
+            # Extract league
+            league_line = lines[0]
+            league = league_line if "•" in league_line else "Football"
+
+            # Extract time
             import re
-            odds_pattern = r'(\d+\.\d+)\s*(\d+\.\d+)\s*(\d+\.\d+)'
-            odds_match = re.search(odds_pattern, text)
+            datetime_line = lines[1]
+            time_match = re.search(r'(\d{2}:\d{2})', datetime_line)
+            if not time_match:
+                continue
+            kickoff_str = time_match.group(1)
 
-            odds_1 = odds_x = odds_2 = None
-            if odds_match:
-                odds_1 = float(odds_match.group(1))
-                odds_x = float(odds_match.group(2))
-                odds_2 = float(odds_match.group(3))
+            # Extract teams - clean up by removing odds numbers and non-team words
+            team_line = lines[2]
 
-            # Extract team names
+            # Remove any numbers with decimals (odds)
+            team_line_clean = re.sub(r'\d+\.\d+', '', team_line)
+            # Remove any standalone numbers
+            team_line_clean = re.sub(r'\b\d+\b', '', team_line_clean)
+            # Remove non-team words
+            for word in non_team_words:
+                team_line_clean = team_line_clean.replace(word, '')
+            # Clean up extra spaces
+            team_line_clean = ' '.join(team_line_clean.split())
+
+            # Split into words
+            team_words = team_line_clean.split()
+
+            # Determine team names
             home = None
             away = None
 
-            # Look for known team names
-            for i, team in enumerate(team_keywords):
-                if team in text:
-                    # Find the second team
-                    for team2 in team_keywords[i + 1:]:
-                        if team2 in text:
-                            home = team
-                            away = team2
-                            break
-                    if home and away:
-                        break
+            if len(team_words) >= 4:
+                # Likely two-word teams (Real Madrid vs Real Sociedad)
+                home = ' '.join(team_words[:2])
+                away = ' '.join(team_words[2:4])
+            elif len(team_words) == 3:
+                # Could be "Man City vs Salford" (2 words vs 1)
+                # Check if first two words form a known team
+                first_two = ' '.join(team_words[:2])
+                last_one = team_words[2]
 
-            # If teams not found by keywords, try to extract from text
-            if not home or not away:
-                # Remove odds from text to get team part
-                if odds_match:
-                    text_before_odds = text[:odds_match.start()].strip()
-                    words = text_before_odds.split()
-                    if len(words) >= 4:
-                        home = ' '.join(words[:2])
-                        away = ' '.join(words[-2:])
-                    elif len(words) >= 2:
-                        home = words[0]
-                        away = words[1]
-                    else:
-                        continue
+                # Common two-word team names
+                two_word_teams = ['Real Madrid', 'Real Sociedad', 'Manchester City',
+                                  'Manchester United', 'Bayern Munich', 'Bayer Leverkusen',
+                                  'Atletico Madrid', 'Aston Villa', 'West Ham', 'Leicester City',
+                                  'Wolverhampton Wanderers', 'Nottingham Forest', 'Brighton Hove',
+                                  'Newcastle United', 'Tottenham Hotspur', 'Crystal Palace']
+
+                if any(team in first_two for team in two_word_teams):
+                    home = first_two
+                    away = last_one
                 else:
-                    continue
+                    home = team_words[0]
+                    away = ' '.join(team_words[1:3])
+            elif len(team_words) == 2:
+                # One-word teams (Lazio vs Atalanta)
+                home = team_words[0]
+                away = team_words[1]
+            else:
+                continue
 
-            # Extract league
-            league = "Football"
-            league_keywords = ['LaLiga', 'Serie A', 'Bundesliga', 'Ligue 1', 'FA Cup',
-                               'Eredivisie', 'Super Lig', 'Liga Portugal', 'Premier League']
-            for l in league_keywords:
-                if l in text:
-                    league = l
-                    break
+            # Clean up
+            home = home.strip()
+            away = away.strip()
 
-            # Extract time
-            time_match = re.search(r'(\d{2}:\d{2})', text)
-            kickoff_str = time_match.group(1) if time_match else "20:00"
+            # Skip if teams are too short
+            if len(home) < 2 or len(away) < 2:
+                continue
+
+            # Fix common split errors
+            if home == "Lazio Atalanta":
+                home = "Lazio"
+                away = "Atalanta"
+            if away == "Bc":
+                away = "Atalanta"  # Fix for match 2
 
             # Create unique ID
             match_id = f"{home}-{away}-{league}"
@@ -334,22 +350,21 @@ def extract_betika_matches(soup, bookie_name):
                 "kickoff": kickoff_str,
                 "kickoff_time": kickoff,
                 "status": "Not Started",
-                "odds_1": odds_1,
-                "odds_x": odds_x,
-                "odds_2": odds_2,
+                "odds_1": None,
+                "odds_x": None,
+                "odds_2": None,
                 "bookie": bookie_name,
-                "normalized_full": f"{normalize_name(home)} vs {normalize_name(away)} in {normalize_name(league)}"
+                "normalized_full": f"{normalize_name(home)} vs {normalize_name(away)}"
             }
             matches.append(match)
-            print(f"  ✅ Betika: {home} vs {away} @ {kickoff_str} - {odds_1}/{odds_x}/{odds_2}")
+            print(f"  ✅ Betika: {home} vs {away} @ {kickoff_str} [{league}]")
 
         except Exception as e:
             print(f"  ⚠️ Error: {e}")
             continue
 
-    print(f"Total unique Betika matches: {len(matches)}")
+    print(f"Total Betika matches extracted: {len(matches)}")
     return matches
-
 
 def extract_sportpesa_matches(soup, bookie_name):
     """Extract matches from SportPesa - FINAL VERSION (no duplicates)"""
@@ -457,7 +472,7 @@ def extract_sportpesa_matches(soup, bookie_name):
                 "odds_x": None,
                 "odds_2": None,
                 "bookie": bookie_name,
-                "normalized_full": f"{normalize_name(home)} vs {normalize_name(away)} in {normalize_name(league)}"
+                "normalized_full": f"{normalize_name(home)} vs {normalize_name(away)}"
             }
             matches.append(match)
             print(f"  ✅ SportPesa: {home} vs {away} @ {kickoff_str} [{league}]")

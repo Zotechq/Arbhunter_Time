@@ -60,40 +60,64 @@ def display_time_variations(variations):
     print("=" * 100)
 
 
-def display_profitable_opportunities(opportunities):
-    """Super simple display - just the facts you need"""
-    if not opportunities:
-        print("\n💰 No opportunities right now.")
+def display_profitable_opportunities(discrepancies, all_bookmakers=['Odibets', 'Betika', 'SportPesa']):
+    """Display discrepancies using Xscores as the reference for correct time"""
+    if not discrepancies:
+        print("\n✅ No discrepancies found.")
         return
 
-    print("\n" + "=" * 100)
-    print(f"💰 TIME DISCREPANCIES FOUND: {len(opportunities)}")
-    print("=" * 100)
+    # Filter to only show matches where Xscores has a time
+    xscores_discrepancies = []
+    for d in discrepancies:
+        if 'Xscores' in d.get('all_times', {}):
+            xscores_discrepancies.append(d)
+
+    if not xscores_discrepancies:
+        print("\n✅ No Xscores discrepancies found.")
+        return
+
+    print("\n" + "=" * 120)
+    print(f"📊 DISCREPANCIES VS XSCORES: {len(xscores_discrepancies)}")
+    print("=" * 120)
 
     table_data = []
-    for i, opp in enumerate(opportunities, 1):
-        # Determine which site is wrong
-        wrong_site = opp['behind_bookie']
-        wrong_time = opp['behind_time']
-        correct_site = opp['correct_bookies'][0] if isinstance(opp['correct_bookies'], list) else opp['correct_bookies']
-        correct_time = opp['correct_time']
+    for i, d in enumerate(xscores_discrepancies, 1):
+        # Get Xscores time as the reference
+        all_times = d.get('all_times', {})
+        xscores_time = all_times.get('Xscores', 'Unknown')
 
-        # Shorten long match names
-        match_name = opp['match']
-        if len(match_name) > 30:
-            match_name = match_name[:27] + "..."
-
-        table_data.append([
+        # Create a row for each match
+        row = [
             i,
-            match_name,
-            f"{wrong_site} says {wrong_time}",
-            f"{correct_site} says {correct_time}",
-            f"{opp['gap_minutes']:.0f} min"
-        ])
+            d['match'][:35] + "..." if len(d['match']) > 35 else d['match'],
+            f"✅ {xscores_time}",  # Xscores is always correct
+        ]
 
-    headers = ["#", "Match", "Wrong", "Correct", "Gap"]
-    print(tabulate(table_data, headers=headers, tablefmt="simple"))
-    print("=" * 100)
+        # Add each betting site's time with comparison to Xscores
+        for bookie in all_bookmakers:
+            if bookie in all_times:
+                time = all_times[bookie]
+                # Calculate gap from Xscores
+                from datetime import datetime
+                try:
+                    xscores_dt = datetime.strptime(xscores_time, '%H:%M')
+                    bookie_dt = datetime.strptime(time, '%H:%M')
+                    gap = abs((bookie_dt - xscores_dt).total_seconds() / 60)
+
+                    if gap > 0:
+                        row.append(f"❌ {time} ({gap:.0f}min)")
+                    else:
+                        row.append(f"✅ {time}")
+                except:
+                    row.append(f"❓ {time}")
+            else:
+                row.append("⚪ -")
+
+        table_data.append(row)
+
+    headers = ["#", "Match", "Xscores", "Odibets", "Betika", "SportPesa"]
+    print(tabulate(table_data, headers=headers, tablefmt="grid"))
+    print("=" * 120)
 
 
 def log_to_csv(data, filename):

@@ -8,6 +8,8 @@ from network import fetch_page
 from scraper import extract_matches
 from engine import detect_variations, detect_arbs, detect_profitable_variations  # detect_arbs deprioritized
 from output import display_matches, display_time_variations, log_to_csv, display_profitable_opportunities
+from engine import analyze_all_discrepancies
+from output import display_profitable_opportunities
 
 request_counter = 0
 
@@ -27,18 +29,46 @@ def main_loop():
             print(f"  → {len(matches)} events")
             all_matches.extend(matches)
 
+            print(f"\n📊 MATCH COUNT BY BOOKMAKER:")
+            bookie_counts = {}
+            for match in all_matches:
+                bookie = match['bookie']
+                bookie_counts[bookie] = bookie_counts.get(bookie, 0) + 1
+
+            for bookie, count in bookie_counts.items():
+                print(f"   • {bookie}: {count} matches")
+
+            print("\n🔍 SportPesa matches found:")
+            sportpesa_matches = [m for m in all_matches if m['bookie'] == 'SportPesa']
+            for m in sportpesa_matches[:5]:  # Show first 5
+                print(f"  • {m['home']} vs {m['away']} @ {m['kickoff']}")
+            if len(sportpesa_matches) > 5:
+                print(f"  ... and {len(sportpesa_matches) - 5} more")
+
+            # Also show which bookmakers are missing
+            all_bookies = ['Odibets', 'Betika', 'SportPesa', 'Xscores']
+            for bookie in all_bookies:
+                if bookie not in bookie_counts:
+                    print(f"   • {bookie}: 0 matches ⚠️")
+            # 👆 END OF DEBUG CODE 👆
+
     if not all_matches:
         print("No matches this cycle.")
         return
 
     #display_matches(all_matches)
-    log_to_csv(all_matches, CSV_MATCHES)
+    discrepancies = analyze_all_discrepancies(all_matches)
+    if discrepancies:
+        display_profitable_opportunities(discrepancies)
+        # Optional: Save to CSV
+        log_to_csv(discrepancies, "discrepancies.csv")
+    #log_to_csv(all_matches, CSV_MATCHES)
 
-    profitable_ops = detect_profitable_variations(all_matches)
+    '''profitable_ops = detect_profitable_variations(all_matches)
     if profitable_ops:
         display_profitable_opportunities(profitable_ops)
         # Also log them for tracking
-        log_to_csv(profitable_ops, "profitable_opportunities.csv")
+        log_to_csv(profitable_ops, "profitable_opportunities.csv")'''
 
 
     # Deprioritized arb detection – only log, no print
@@ -47,6 +77,7 @@ def main_loop():
         log_to_csv(arbs, CSV_ARBS)  # Optional silent logging
 
     print("Cycle complete.\n")
+
 
 
 if __name__ == "__main__":

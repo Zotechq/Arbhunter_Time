@@ -350,12 +350,133 @@ def extract_betika_matches(soup, bookie_name):
     print(f"Total unique Betika matches: {len(matches)}")
     return matches
 
+
+def extract_sportpesa_matches(soup, bookie_name):
+    """Extract matches from SportPesa - FINAL VERSION (no duplicates)"""
+    matches = []
+    seen_matches = set()
+
+    # List of real teams to filter by
+    real_teams = [
+        'Bandari', 'AFC Leopards', 'Posta Rangers', 'Shabana FC', 'Mathare United',
+        'Tusker', 'Bayer Leverkusen', 'St. Pauli', 'Manchester City', 'Salford City',
+        'Inter', 'Juventus', 'Stuttgart', 'FC Koln', 'Burton', 'West Ham',
+        'Aston Villa', 'Newcastle', 'Como', 'Fiorentina', 'Burnley', 'Mansfield',
+        'Marseille', 'Strasbourg', 'Hoffenheim', 'SC Freiburg', 'Dinamo Zagreb',
+        'Istra 1961', 'Lille', 'Brest', 'Getafe', 'Villarreal', 'Pyramids FC',
+        'Power Dynamos', 'Paris FC', 'Lens', 'Eintracht Frankfurt',
+        'Borussia Monchengladbach', 'Lazio', 'Atalanta', 'Sevilla FC', 'Alaves',
+        'Simba SC', 'Stade Malien', 'El Zamalek', 'Kaizer Chiefs', 'Espanyol',
+        'Celta Vigo', 'AL Hilal', 'FC Saint Eloi Lupopo', 'BSC Young Boys',
+        'FC Winterthur', 'Nara Club', 'Imabari', 'Omiya Ardija', 'Consadole Sapporo',
+        'Machida Zelvia', 'Mito Hollyhock', 'Sanfrecce Hiroshima', 'Fagiano Okayama',
+        'Yokohama', 'Vegalta Sendai', 'Shonan Bellmare', 'Sagamihara', 'Shimizu S Pulse',
+        'Kyoto Sanga', 'Ventforet Kofu', 'Nagano Parceiro', 'Fujieda MYFC',
+        'Matsumoto Yamaga', 'APIA Tigers', 'NWS Spirit', 'FC Tokyo', 'Urawa Red Diamonds',
+        'Melbourne Victory', 'Brisbane Roar', 'SD Raiders FC', 'Sydney Olympic'
+    ]
+
+    all_divs = soup.find_all("div")
+    print(f"Scanning {len(all_divs)} divs for SportPesa matches...")
+
+    match_blocks = []
+
+    for div in all_divs:
+        text = div.get_text().strip()
+        # Check if this div contains a real team name AND a time (HH:MM)
+        import re
+        has_team = any(team in text for team in real_teams)
+        has_time = re.search(r'\d{2}:\d{2}', text) is not None
+
+        if has_team and has_time:
+            match_blocks.append(div)
+
+    print(f"Found {len(match_blocks)} SportPesa match blocks with real times")
+
+    for block in match_blocks:
+        try:
+            text = block.get_text().strip()
+
+            # Extract time (HH:MM)
+            import re
+            time_match = re.search(r'(\d{2}:\d{2})', text)
+            if not time_match:
+                continue
+            kickoff_str = time_match.group(1)
+
+            # Extract league - look for lines with " - "
+            league = "Football"
+            for line in text.split('\n'):
+                if " - " in line and "ID:" not in line:
+                    league = line.strip()
+                    break
+
+            # Extract team names - find two real teams in the text
+            teams_found = []
+            for team in real_teams:
+                if team in text and team not in teams_found:
+                    teams_found.append(team)
+                if len(teams_found) >= 2:
+                    break
+
+            if len(teams_found) < 2:
+                continue
+
+            home = teams_found[0]
+            away = teams_found[1]
+
+            # Create unique ID
+            match_id = f"{home}-{away}-{league}"
+
+            if match_id in seen_matches:
+                continue
+
+            seen_matches.add(match_id)
+
+            # Parse kickoff
+            from datetime import datetime, timedelta
+            now = datetime.now()
+            try:
+                hour, minute = map(int, kickoff_str.split(':'))
+                kickoff = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+                if kickoff < now:
+                    kickoff += timedelta(days=1)
+            except:
+                kickoff = now + timedelta(hours=2)
+                kickoff_str = kickoff.strftime("%H:%M")
+
+            match = {
+                "match_id": match_id,
+                "home": home,
+                "away": away,
+                "league": league,
+                "kickoff": kickoff_str,
+                "kickoff_time": kickoff,
+                "status": "Not Started",
+                "odds_1": None,
+                "odds_x": None,
+                "odds_2": None,
+                "bookie": bookie_name,
+                "normalized_full": f"{normalize_name(home)} vs {normalize_name(away)} in {normalize_name(league)}"
+            }
+            matches.append(match)
+            print(f"  ✅ SportPesa: {home} vs {away} @ {kickoff_str} [{league}]")
+
+        except Exception as e:
+            print(f"  ⚠️ Error: {e}")
+            continue
+
+    print(f"Total SportPesa matches extracted: {len(matches)}")
+    return matches
+
 def extract_matches(soup, bookie_name):
     """Main dispatcher - calls the right scraper based on bookie name"""
     if bookie_name == "Odibets":
         return extract_odibets_matches(soup, bookie_name)
     elif bookie_name == "Betika":
         return extract_betika_matches(soup, bookie_name)
+    elif bookie_name == "SportPesa":  # Add this
+        return extract_sportpesa_matches(soup, bookie_name)
     elif bookie_name == "Xscores":
         return extract_xscores_matches(soup, bookie_name)
     else:

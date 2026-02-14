@@ -8,7 +8,8 @@ from datetime import datetime, timedelta
 BOOKMAKER_URLS = [
     ("https://www.odibets.com/sports/soccer", "Odibets"),
     ("https://www.xscores.com/soccer", "Xscores"),
-    ("https://www.betika.com/en-ke/s/soccer", "Betika")
+    ("https://www.betika.com/en-ke/s/soccer", "Betika"),
+    ("https://www.ke.sportpesa.com/en/sports-betting/football-1/", "SportPesa")
 ]
 
 USER_AGENTS = [

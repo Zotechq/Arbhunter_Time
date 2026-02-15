@@ -1,0 +1,200 @@
+[
+  {
+    "home_team": "Kakamega Homeboyz",
+    "away_team": "APS Bomet",
+    "status": "Postponed",
+    "match_type": "postponed"
+  },
+  {
+    "home_team": "Muranga",
+    "away_team": "Posta Rangers",
+    "status": "Postponed",
+    "match_type": "postponed"
+  },
+  {
+    "home_team": "Leopards",
+    "away_team": "Shabana",
+    "status": "Postponed",
+    "match_type": "postponed"
+  },
+  {
+    "home_team": "Boca Juniors",
+    "away_team": "Platense",
+    "status": "22:30",
+    "match_type": "time"
+  },
+  {
+    "home_team": "Botafogo SP",
+    "away_team": "Capivariano",
+    "status": "23:30",
+    "match_type": "time"
+  },
+  {
+    "home_team": "Bragantino",
+    "away_team": "Novorizontino",
+    "status": "23:30",
+    "match_type": "time"
+  },
+  {
+    "home_team": "Mirassol",
+    "away_team": "Portuguesa",
+    "status": "23:30",
+    "match_type": "time"
+  },
+  {
+    "home_team": "Palmeiras",
+    "away_team": "Guarani",
+    "status": "23:30",
+    "match_type": "time"
+  },
+  {
+    "home_team": "Ponte Preta",
+    "away_team": "Sao Paulo",
+    "status": "23:30",
+    "match_type": "time"
+  },
+  {
+    "home_team": "Primavera",
+    "away_team": "Noroeste",
+    "status": "23:30",
+    "match_type": "time"
+  },
+  {
+    "home_team": "Santos",
+    "away_team": "Velo Clube",
+    "status": "23:30",
+    "match_type": "time"
+  },
+  {
+    "home_team": "Sao Bernardo",
+    "away_team": "Corinthians",
+    "status": "23:30",
+    "match_type": "time"
+  },
+  {
+    "home_team": "Colo Colo",
+    "away_team": "Union La Calera",
+    "status": "23:30",
+    "match_type": "time"
+  },
+  {
+    "home_team": "Aguilas",
+    "away_team": "Bucaramanga",
+    "status": "Postponed",
+    "match_type": "postponed"
+  },
+  {
+    "home_team": "Dep. Cali",
+    "away_team": "Atl. Nacional",
+    "status": "23:30",
+    "match_type": "time"
+  },
+  {
+    "home_team": "Motagua",
+    "away_team": "Marathon",
+    "status": "23:15",
+    "match_type": "time"
+  },
+  {
+    "home_team": "Zob Ahan",
+    "away_team": "Sepahan",
+    "status": "Postponed",
+    "match_type": "postponed"
+  },
+  {
+    "home_team": "Cruz Azul",
+    "away_team": "Tigres UANL",
+    "status": "22:30",
+    "match_type": "time"
+  },
+  {
+    "home_team": "Santos Laguna",
+    "away_team": "Mazatlan FC",
+    "status": "23:00",
+    "match_type": "time"
+  },
+  {
+    "home_team": "Ferretti",
+    "away_team": "Esteli",
+    "status": "22:00",
+    "match_type": "time"
+  },
+  {
+    "home_team": "Rancho Santana",
+    "away_team": "UNAN-Managua",
+    "status": "22:00",
+    "match_type": "time"
+  },
+  {
+    "home_team": "Cerro Porteno",
+    "away_team": "Nacional Asuncion",
+    "status": "23:30",
+    "match_type": "time"
+  },
+  {
+    "home_team": "FBC Melgar",
+    "away_team": "Moquegua",
+    "status": "23:30",
+    "match_type": "time"
+  },
+  {
+    "home_team": "Central Esp.",
+    "away_team": "Penarol",
+    "status": "23:30",
+    "match_type": "time"
+  },
+  {
+    "home_team": "Briton Ferry W",
+    "away_team": "Pontypridd W",
+    "status": "Postponed",
+    "match_type": "postponed"
+  },
+  {
+    "home_team": "Swansea W",
+    "away_team": "Wrexham W",
+    "status": "Postponed",
+    "match_type": "postponed"
+  },
+  {
+    "home_team": "Germany U17",
+    "away_team": "Denmark U17",
+    "status": "Cancelled",
+    "match_type": "postponed"
+  },
+  {
+    "home_team": "Pobeda Valandovo (Mkd)",
+    "away_team": "Sloga Vinica (Mkd)",
+    "status": "Cancelled",
+    "match_type": "postponed"
+  },
+  {
+    "home_team": "Riga FC (Lat)",
+    "away_team": "Petrocub (Mda)",
+    "status": "Cancelled",
+    "match_type": "postponed"
+  },
+  {
+    "home_team": "Ulytau (Kaz)",
+    "away_team": "Yenisey (Rus)",
+    "status": "Cancelled",
+    "match_type": "postponed"
+  },
+  {
+    "home_team": "Charleston (Usa)",
+    "away_team": "Tormenta (Usa)",
+    "status": "22:00",
+    "match_type": "time"
+  },
+  {
+    "home_team": "Utah Royals W (Usa)",
+    "away_team": "Denver Summit W (Usa)",
+    "status": "22:00",
+    "match_type": "time"
+  },
+  {
+    "home_team": "Power Dynamos",
+    "away_team": "Mines",
+    "status": "Postponed",
+    "match_type": "postponed"
+  }
+]

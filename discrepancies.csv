@@ -268,3 +268,31 @@ Real Madrid vs Real Sociedad,L,22:00,"[{'bookie': 'Betika', 'their_time': '20:00
 Paris FC vs Lens,L1,22:05,"[{'bookie': 'SportPesa', 'their_time': '23:05', 'gap_minutes': 60.0}]","{'Xscores': '22:05', 'SportPesa': '23:05'}",SportPesa: 60min
 Mathare United vs Tusker .,Kenya • Premier League,13:00,"[{'bookie': 'SportPesa', 'their_time': '16:00', 'gap_minutes': 180.0}]","{'Betika': '13:00', 'SportPesa': '16:00'}",SportPesa: 180min
 Posta Ranger vs Shabana Fc,Kenya • Premier League,13:00,"[{'bookie': 'SportPesa', 'their_time': '16:00', 'gap_minutes': 180.0}]","{'Betika': '13:00', 'SportPesa': '16:00'}",SportPesa: 180min
+Levante UD vs Valencia CF,Football,20:30,"[{'bookie': 'Xscores', 'their_time': '19:30', 'gap_minutes': 60.0}]","{'Odibets': '20:30', 'Xscores': '19:30'}",Xscores: 60min
+SSC Napoli vs AS Roma,Football,22:45,"[{'bookie': 'Xscores', 'their_time': '21:45', 'gap_minutes': 60.0}]","{'Odibets': '22:45', 'Xscores': '21:45'}",Xscores: 60min
+Torino FC vs Bologna FC,Football,20:00,"[{'bookie': 'Xscores', 'their_time': '19:00', 'gap_minutes': 60.0}, {'bookie': 'Betika', 'their_time': '17:00', 'gap_minutes': 180.0}]","{'Odibets': '20:00', 'Xscores': '19:00', 'Betika': '17:00'}","Xscores: 60min
+Betika: 180min"
+RSC Anderlecht vs RAAL La Louviere,Football,20:30,"[{'bookie': 'Xscores', 'their_time': '19:30', 'gap_minutes': 60.0}]","{'Odibets': '20:30', 'Xscores': '19:30'}",Xscores: 60min
+Viborg FF vs Broendby IF,Football,20:00,"[{'bookie': 'Xscores', 'their_time': '19:00', 'gap_minutes': 60.0}, {'bookie': 'Betika', 'their_time': '17:00', 'gap_minutes': 180.0}]","{'Odibets': '20:00', 'Xscores': '19:00', 'Betika': '17:00'}","Xscores: 60min
+Betika: 180min"
+Sporting CP vs FC Famalicao,Football,23:30,"[{'bookie': 'Xscores', 'their_time': '22:30', 'gap_minutes': 60.0}, {'bookie': 'Betika', 'their_time': '20:30', 'gap_minutes': 180.0}]","{'Odibets': '23:30', 'Xscores': '22:30', 'Betika': '20:30'}","Xscores: 60min
+Betika: 180min"
+AVS Futebol SAD vs Estoril Praia,Football,21:00,"[{'bookie': 'Xscores', 'their_time': '20:00', 'gap_minutes': 60.0}]","{'Odibets': '21:00', 'Xscores': '20:00'}",Xscores: 60min
+CR Belouizdad vs AS Otoho,CCC,18:00,"[{'bookie': 'Betika', 'their_time': '16:00', 'gap_minutes': 120.0}]","{'Xscores': '18:00', 'Betika': '16:00'}",Betika: 120min
+Djoliba AC vs San Pedro,CCC,18:00,"[{'bookie': 'Betika', 'their_time': '16:00', 'gap_minutes': 120.0}]","{'Xscores': '18:00', 'Betika': '16:00'}",Betika: 120min
+Stellenbosch FC vs Singida Black Stars,CCC,18:00,"[{'bookie': 'Betika', 'their_time': '16:00', 'gap_minutes': 120.0}]","{'Xscores': '18:00', 'Betika': '16:00'}",Betika: 120min
+Gyori ETO vs Kisvarda,NBI,18:45,"[{'bookie': 'Betika', 'their_time': '16:45', 'gap_minutes': 120.0}]","{'Xscores': '18:45', 'Betika': '16:45'}",Betika: 120min
+Istanbul Basaksehir vs Besiktas,SL,19:00,"[{'bookie': 'Betika', 'their_time': '17:00', 'gap_minutes': 120.0}]","{'Xscores': '19:00', 'Betika': '17:00'}",Betika: 120min
+Sparta Prague vs Hradec Kralove,1L,19:30,"[{'bookie': 'Betika', 'their_time': '17:30', 'gap_minutes': 120.0}]","{'Xscores': '19:30', 'Betika': '17:30'}",Betika: 120min
+Levante UD vs Valencia CF,Football,20:30,"[{'bookie': 'Xscores', 'their_time': '19:30', 'gap_minutes': 60.0}]","{'Odibets': '20:30', 'Xscores': '19:30'}",Xscores: 60min
+SSC Napoli vs AS Roma,Football,22:45,"[{'bookie': 'Xscores', 'their_time': '21:45', 'gap_minutes': 60.0}]","{'Odibets': '22:45', 'Xscores': '21:45'}",Xscores: 60min
+RSC Anderlecht vs RAAL La Louviere,Football,20:30,"[{'bookie': 'Xscores', 'their_time': '19:30', 'gap_minutes': 60.0}]","{'Odibets': '20:30', 'Xscores': '19:30'}",Xscores: 60min
+Sporting CP vs FC Famalicao,Football,23:30,"[{'bookie': 'Xscores', 'their_time': '22:30', 'gap_minutes': 60.0}, {'bookie': 'Betika', 'their_time': '20:30', 'gap_minutes': 180.0}]","{'Odibets': '23:30', 'Xscores': '22:30', 'Betika': '20:30'}","Xscores: 60min
+Betika: 180min"
+AVS Futebol SAD vs Estoril Praia,Football,21:00,"[{'bookie': 'Xscores', 'their_time': '20:00', 'gap_minutes': 60.0}]","{'Odibets': '21:00', 'Xscores': '20:00'}",Xscores: 60min
+Gyori ETO vs Kisvarda,NBI,18:45,"[{'bookie': 'Betika', 'their_time': '16:45', 'gap_minutes': 120.0}]","{'Xscores': '18:45', 'Betika': '16:45'}",Betika: 120min
+AEL Limassol vs Pafos FC,CL,19:00,"[{'bookie': 'Betika', 'their_time': '17:00', 'gap_minutes': 120.0}]","{'Xscores': '19:00', 'Betika': '17:00'}",Betika: 120min
+Viborg vs Brondby IF,S,19:00,"[{'bookie': 'Betika', 'their_time': '17:00', 'gap_minutes': 120.0}]","{'Xscores': '19:00', 'Betika': '17:00'}",Betika: 120min
+Torino vs Bologna,SA,19:00,"[{'bookie': 'Betika', 'their_time': '17:00', 'gap_minutes': 120.0}]","{'Xscores': '19:00', 'Betika': '17:00'}",Betika: 120min
+Istanbul Basaksehir vs Besiktas,SL,19:00,"[{'bookie': 'Betika', 'their_time': '17:00', 'gap_minutes': 120.0}]","{'Xscores': '19:00', 'Betika': '17:00'}",Betika: 120min
+Sparta Prague vs Hradec Kralove,1L,19:30,"[{'bookie': 'Betika', 'their_time': '17:30', 'gap_minutes': 120.0}]","{'Xscores': '19:30', 'Betika': '17:30'}",Betika: 120min

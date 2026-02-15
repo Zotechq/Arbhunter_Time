@@ -12,18 +12,8 @@ def extract_odibets_matches(soup, bookie_name):
     match_containers = soup.find_all("a", class_="t")
     print(f"Found {len(match_containers)} potential matches")
 
-    # Find all odds containers
-    odds_containers = soup.find_all("div", class_="odds")
-    print(f"Found {len(odds_containers)} odds containers")
-
-    # Zip them together (assuming they're in the same order)
     for i, container in enumerate(match_containers):
         try:
-            # Skip if we don't have matching odds
-            if i >= len(odds_containers):
-                print(f"  ⚠️ No odds for match {i + 1}")
-                continue
-
             # 1. Get team names from div.t-l
             team_divs = container.find_all("div", class_="t-l")
             if len(team_divs) < 2:
@@ -47,48 +37,52 @@ def extract_odibets_matches(soup, bookie_name):
 
             kickoff_str = time_span.text.strip().split('#')[0]  # "13/02 23:00"
 
-            # 3. Get odds from corresponding odds container
-            odds_div = odds_containers[i]
-            odds_text = odds_div.text.strip()
+            # 3. Convert kickoff string to datetime (IMPROVED VERSION)
+            from datetime import datetime, timedelta
 
-            # Extract 1X2 odds using regex
-            import re
-            # Pattern matches "1 2.85 X 3.20 2 2.65"
-            pattern = r'1\s+(\d+\.\d+)\s+X\s+(\d+\.\d+)\s+2\s+(\d+\.\d+)'
-            odds_match = re.search(pattern, odds_text)
+            now = datetime.now()
+            current_year = now.year
 
-            if odds_match:
-                odds_1 = float(odds_match.group(1))
-                odds_x = float(odds_match.group(2))
-                odds_2 = float(odds_match.group(3))
-            else:
-                # If pattern fails, try to find any three numbers
-                numbers = re.findall(r'(\d+\.\d+)', odds_text)
-                if len(numbers) >= 3:
-                    odds_1 = float(numbers[0])
-                    odds_x = float(numbers[1])
-                    odds_2 = float(numbers[2])
-                else:
-                    print(f"  ⚠️ Could not parse odds: {odds_text[:50]}")
-                    continue
-
-            # 4. Convert kickoff string to datetime
             try:
-                current_year = datetime.now().year
-                kickoff = datetime.strptime(f"{current_year} {kickoff_str}", "%Y %d/%m %H:%M")
+                # Parse the date without year first
+                base_date = datetime.strptime(kickoff_str, "%d/%m %H:%M")
 
-                # If date is in past, assume next year
-                if kickoff < datetime.now():
-                    kickoff = kickoff.replace(year=current_year + 1)
+                # Try current year
+                kickoff = base_date.replace(year=current_year)
 
-            except ValueError:
-                kickoff = datetime.now() + timedelta(hours=1)
+                # If it's more than 2 months in the past, try next year
+                if kickoff < now - timedelta(days=60):
+                    kickoff = base_date.replace(year=current_year + 1)
+                    print(f"  📅 Date adjusted to next year: {kickoff.strftime('%Y-%m-%d %H:%M')}")
 
-            # 5. Normalize names
-            home_norm = normalize_name(home)
-            away_norm = normalize_name(away)
+                # Special case: December matches scraped in January
+                elif now.month == 1 and base_date.month == 12:
+                    if kickoff.year == current_year:
+                        kickoff = base_date.replace(year=current_year - 1)
+                        print(f"  📅 Date adjusted to previous year: {kickoff.strftime('%Y-%m-%d %H:%M')}")
 
-            # 6. Create match entry
+                # Special case: January matches scraped in December
+                elif now.month == 12 and base_date.month == 1:
+                    if kickoff.year == current_year:
+                        kickoff = base_date.replace(year=current_year + 1)
+                        print(f"  📅 Date adjusted to next year: {kickoff.strftime('%Y-%m-%d %H:%M')}")
+
+            except ValueError as e:
+                print(f"  ⚠️ Could not parse date '{kickoff_str}', using tomorrow")
+                kickoff = now + timedelta(days=1)
+
+            # 4. Normalize names (keeping your original approach)
+            # Assuming you have a normalize_name function elsewhere
+            try:
+                from helpers import normalize_name
+                home_norm = normalize_name(home)
+                away_norm = normalize_name(away)
+            except ImportError:
+                # Simple fallback if normalize_name not available
+                home_norm = home.lower().replace(' ', '-')
+                away_norm = away.lower().replace(' ', '-')
+
+            # 5. Create match entry (ODDS REMOVED)
             match = {
                 "match_id": f"{home_norm}-{away_norm}-football",
                 "home": home,
@@ -96,15 +90,11 @@ def extract_odibets_matches(soup, bookie_name):
                 "league": "Football",
                 "kickoff": kickoff.strftime("%H:%M"),
                 "kickoff_time": kickoff,
-                "status": "Not Started",
-                "odds_1": odds_1,
-                "odds_x": odds_x,
-                "odds_2": odds_2,
                 "bookie": bookie_name,
                 "normalized_full": f"{home_norm} vs {away_norm}"
             }
             matches.append(match)
-            print(f"  ✅ {home} vs {away} @ {kickoff_str} - Odds: {odds_1}/{odds_x}/{odds_2}")
+            print(f"  ✅ {home} vs {away} @ {kickoff_str}")
 
         except Exception as e:
             print(f"  ⚠️ Error parsing match: {e}")

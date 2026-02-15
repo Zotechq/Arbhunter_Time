@@ -1,21 +1,20 @@
-# betika_final_working.py
+# betika_scraper.py - FINAL VERSION
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.by import By
-from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 import time
 import re
 import json
 
 
-def fetch_betika_matches_final(headless=True):
+def fetch_betika_matches(headless=True):
     """
-    FINAL WORKING VERSION - Extracts matches using the correct pattern
+    Fetch soccer matches from Betika - FINAL WORKING VERSION
     """
 
     print("=" * 60)
-    print("⚽ BETIKA MATCH EXTRACTOR - FINAL WORKING VERSION")
+    print("⚽ FETCHING BETIKA MATCHES")
     print("=" * 60)
 
     options = Options()
@@ -39,7 +38,7 @@ def fetch_betika_matches_final(headless=True):
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(3)
 
-        # Get the main content area (desktop-layout__content)
+        # Get the main content area
         content = driver.find_element(By.CLASS_NAME, "desktop-layout__content")
         page_text = content.text
         lines = page_text.split('\n')
@@ -50,7 +49,7 @@ def fetch_betika_matches_final(headless=True):
         while i < len(lines):
             line = lines[i].strip()
 
-            # Look for league pattern (e.g., "Chile • Primera Division")
+            # Look for league pattern (contains • and not odds)
             if '•' in line and not re.search(r'\d+\.\d+', line):
                 league = line
 
@@ -72,10 +71,10 @@ def fetch_betika_matches_final(headless=True):
                             home = re.sub(r'\.\.\.$', '', home).strip()
                             away = re.sub(r'\.\.\.$', '', away).strip()
 
-                            # Skip if these are odds (contain numbers)
+                            # Skip if these are odds
                             if not re.search(r'\d+\.\d+', home) and not re.search(r'\d+\.\d+', away):
                                 # Parse date with smart year detection
-                                match_date = smart_year_detection(date_str, time_str)
+                                match_date = parse_match_datetime(date_str, time_str)
 
                                 match = {
                                     'home': home,
@@ -87,7 +86,7 @@ def fetch_betika_matches_final(headless=True):
                                     'bookie': 'Betika'
                                 }
                                 matches.append(match)
-                                print(f"✅ {home:20} vs {away:20} @ {date_str} {time_str}")
+                                print(f"✅ {home:25} vs {away:25} @ {date_str} {time_str}")
 
                                 # Skip ahead 4 lines (league, time, home, away)
                                 i += 4
@@ -106,8 +105,8 @@ def fetch_betika_matches_final(headless=True):
         driver.quit()
 
 
-def smart_year_detection(date_str, time_str):
-    """Intelligently determine the correct year for a match"""
+def parse_match_datetime(date_str, time_str):
+    """Parse date string to datetime with smart year detection"""
     now = datetime.now()
     current_year = now.year
 
@@ -132,43 +131,36 @@ def smart_year_detection(date_str, time_str):
         return now
 
 
-def test_final_scraper():
-    """Test the final working scraper"""
+def save_matches(matches, format='json'):
+    """Save matches to file"""
+    if not matches:
+        print("❌ No matches to save")
+        return
 
-    print("=" * 80)
-    print("🔬 TESTING FINAL BETIKA SCRAPER")
-    print("=" * 80)
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
 
-    matches = fetch_betika_matches_final(headless=True)
-
-    if matches:
-        print(f"\n✅ SUCCESS! Found {len(matches)} matches")
-
-        print("\n📋 All matches:")
-        print("-" * 80)
-        for i, match in enumerate(matches, 1):
-            print(f"{i:2}. {match['home']:25} vs {match['away']:25}")
-            print(f"    {match['league']}")
-            print(f"    {match['date']} at {match['time']}")
-            print()
-
-        # Save to file
-        filename = f"betika_matches_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    if format == 'json':
+        filename = f"betika_matches_{timestamp}.json"
         with open(filename, 'w') as f:
             json.dump(matches, f, indent=2)
-        print(f"💾 Saved to {filename}")
+        print(f"💾 Saved {len(matches)} matches to {filename}")
 
-        # Also save as CSV for easy viewing
-        csv_filename = f"betika_matches_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
-        with open(csv_filename, 'w') as f:
+    elif format == 'csv':
+        filename = f"betika_matches_{timestamp}.csv"
+        with open(filename, 'w') as f:
             f.write("Home,Away,Date,Time,League\n")
             for match in matches:
                 f.write(f"{match['home']},{match['away']},{match['date']},{match['time']},\"{match['league']}\"\n")
-        print(f"💾 Saved to {csv_filename}")
-
-    else:
-        print("❌ No matches found")
+        print(f"💾 Saved {len(matches)} matches to {filename}")
 
 
 if __name__ == "__main__":
-    test_final_scraper()
+    # Test the scraper
+    matches = fetch_betika_matches(headless=True)
+
+    if matches:
+        print(f"\n✅ Successfully extracted {len(matches)} matches")
+        save_matches(matches, 'json')
+        save_matches(matches, 'csv')
+    else:
+        print("❌ No matches found")

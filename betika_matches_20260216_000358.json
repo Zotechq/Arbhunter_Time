@@ -1,0 +1,362 @@
+[
+  {
+    "home": "Girona",
+    "away": "Barcelona",
+    "date": "16/02",
+    "time": "20:00",
+    "datetime": "2026-02-16T20:00:00",
+    "league": "Spain \u2022 LaLiga",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Cagliari",
+    "away": "Us Lecce",
+    "date": "16/02",
+    "time": "19:45",
+    "datetime": "2026-02-16T19:45:00",
+    "league": "Italy \u2022 Serie A",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Macclesfield Fc",
+    "away": "Brentford",
+    "date": "16/02",
+    "time": "19:30",
+    "datetime": "2026-02-16T19:30:00",
+    "league": "England \u2022 FA Cup",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Coventry",
+    "away": "Middlesbrough",
+    "date": "16/02",
+    "time": "20:00",
+    "datetime": "2026-02-16T20:00:00",
+    "league": "England \u2022 Championship",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Colo Colo",
+    "away": "Union La Calera",
+    "date": "15/02",
+    "time": "23:30",
+    "datetime": "2026-02-15T23:30:00",
+    "league": "Chile \u2022 Primera Division",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Central Espanol",
+    "away": "Penarol Montevide",
+    "date": "15/02",
+    "time": "23:30",
+    "datetime": "2026-02-15T23:30:00",
+    "league": "Uruguay \u2022 Primera Division",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Boca Juniors",
+    "away": "Ca Platense",
+    "date": "15/02",
+    "time": "22:30",
+    "datetime": "2026-02-15T22:30:00",
+    "league": "Argentina \u2022 Primera LPF",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Fbc Melgar",
+    "away": "Cd Moquegua",
+    "date": "15/02",
+    "time": "23:30",
+    "datetime": "2026-02-15T23:30:00",
+    "league": "Peru \u2022 Liga 1",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Se Palmeiras",
+    "away": "Guarani",
+    "date": "15/02",
+    "time": "23:30",
+    "datetime": "2026-02-15T23:30:00",
+    "league": "Brazil \u2022 Paulista, Serie A1",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Santos Sp",
+    "away": "Velo Clube",
+    "date": "15/02",
+    "time": "23:30",
+    "datetime": "2026-02-15T23:30:00",
+    "league": "Brazil \u2022 Paulista, Serie A1",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Ponte Preta",
+    "away": "Sao Paulo Fc",
+    "date": "15/02",
+    "time": "23:30",
+    "datetime": "2026-02-15T23:30:00",
+    "league": "Brazil \u2022 Paulista, Serie A1",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Ca Rosario Centra",
+    "away": "Barracas Central",
+    "date": "16/02",
+    "time": "01:00",
+    "datetime": "2026-02-16T01:00:00",
+    "league": "Argentina \u2022 Primera LPF",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Diriangen Fc Diri",
+    "away": "Hyh Sebaco Fc",
+    "date": "16/02",
+    "time": "01:00",
+    "datetime": "2026-02-16T01:00:00",
+    "league": "Nicaragua \u2022 Primera Division",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Managua Fc",
+    "away": "Indigenas De Mata",
+    "date": "16/02",
+    "time": "01:00",
+    "datetime": "2026-02-16T01:00:00",
+    "league": "Nicaragua \u2022 Primera Division",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Fortaleza",
+    "away": "Boyaca Chico",
+    "date": "16/02",
+    "time": "01:30",
+    "datetime": "2026-02-16T01:30:00",
+    "league": "Colombia \u2022 Liga DIMAYOR",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Victoria",
+    "away": "Olimpia",
+    "date": "16/02",
+    "time": "01:30",
+    "datetime": "2026-02-16T01:30:00",
+    "league": "Honduras \u2022 Liga Nacional. Clau...",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Xelaju Mc",
+    "away": "Marquense",
+    "date": "16/02",
+    "time": "02:00",
+    "datetime": "2026-02-16T02:00:00",
+    "league": "Guatemala \u2022 Liga Nacional, Cla...",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Persita Tangerang",
+    "away": "Psbs Biak",
+    "date": "16/02",
+    "time": "08:30",
+    "datetime": "2026-02-16T08:30:00",
+    "league": "Indonesia \u2022 Super League",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Melbourne Victory",
+    "away": "Eltham Redbacks",
+    "date": "16/02",
+    "time": "09:30",
+    "datetime": "2026-02-16T09:30:00",
+    "league": "Australia \u2022 Victoria Premier L...",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Gabala Fk",
+    "away": "Sabah Masazir",
+    "date": "16/02",
+    "time": "13:00",
+    "datetime": "2026-02-16T13:00:00",
+    "league": "Azerbaijan \u2022 Premier League",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Railways",
+    "away": "Sa Meanzel Bourgu",
+    "date": "16/02",
+    "time": "13:00",
+    "datetime": "2026-02-16T13:00:00",
+    "league": "Tunisia \u2022 Ligue 2",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Majd Fc",
+    "away": "Dibba Al-Hisn",
+    "date": "16/02",
+    "time": "13:20",
+    "datetime": "2026-02-16T13:20:00",
+    "league": "United Arab Emirates \u2022 First D...",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Beitar Jerusalem",
+    "away": "Maccabi Tel Aviv",
+    "date": "16/02",
+    "time": "18:30",
+    "datetime": "2026-02-16T18:30:00",
+    "league": "Israel \u2022 Premier League",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Atromitos Athens",
+    "away": "Panserraikos",
+    "date": "16/02",
+    "time": "16:00",
+    "datetime": "2026-02-16T16:00:00",
+    "league": "Greece \u2022 Super League",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Al-Ahli Saudi Fc",
+    "away": "Shabab Al Ahli Du",
+    "date": "16/02",
+    "time": "16:00",
+    "datetime": "2026-02-16T16:00:00",
+    "league": "International Clubs \u2022 AFC Cham...",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Sharjah Fc",
+    "away": "Fc Nasaf",
+    "date": "16/02",
+    "time": "16:00",
+    "datetime": "2026-02-16T16:00:00",
+    "league": "International Clubs \u2022 AFC Cham...",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Fk Zeljeznicar Sa",
+    "away": "Fk Rudar Prijedor",
+    "date": "16/02",
+    "time": "17:00",
+    "datetime": "2026-02-16T17:00:00",
+    "league": "Bosnia & Herzegovina \u2022 Premije...",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Al Shorta",
+    "away": "Al Duhail Sc",
+    "date": "16/02",
+    "time": "18:15",
+    "datetime": "2026-02-16T18:15:00",
+    "league": "International Clubs \u2022 AFC Cham...",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Al Hilal Sfc",
+    "away": "Al Wahda Fc (Uae)",
+    "date": "16/02",
+    "time": "18:15",
+    "datetime": "2026-02-16T18:15:00",
+    "league": "International Clubs \u2022 AFC Cham...",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Jong Ajax Amsterd",
+    "away": "Sc Cambuur",
+    "date": "16/02",
+    "time": "19:00",
+    "datetime": "2026-02-16T19:00:00",
+    "league": "Netherlands \u2022 Eerste Divisie",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Fluminense Fc",
+    "away": "Bangu",
+    "date": "16/02",
+    "time": "21:00",
+    "datetime": "2026-02-16T21:00:00",
+    "league": "Brazil \u2022 Carioca, Serie A",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Vila Nova",
+    "away": "Anapolis Fc Go",
+    "date": "16/02",
+    "time": "22:30",
+    "datetime": "2026-02-16T22:30:00",
+    "league": "Brazil \u2022 Goiano",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Quindio",
+    "away": "Barranquilla",
+    "date": "17/02",
+    "time": "00:30",
+    "datetime": "2026-02-17T00:30:00",
+    "league": "Colombia \u2022 Torneo DIMAYOR",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Bruk-Bet Termalic",
+    "away": "Gornik Zabrze",
+    "date": "16/02",
+    "time": "18:00",
+    "datetime": "2026-02-16T18:00:00",
+    "league": "Poland \u2022 Ekstraklasa",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Real Sociedad B",
+    "away": "Malaga Cf",
+    "date": "16/02",
+    "time": "19:30",
+    "datetime": "2026-02-16T19:30:00",
+    "league": "Spain \u2022 LaLiga 2",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Albion Fc",
+    "away": "Ca Cerro",
+    "date": "16/02",
+    "time": "22:00",
+    "datetime": "2026-02-16T22:00:00",
+    "league": "Uruguay \u2022 Primera Division",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Montevideo City T",
+    "away": "Ca Juventud De La",
+    "date": "17/02",
+    "time": "00:30",
+    "datetime": "2026-02-17T00:30:00",
+    "league": "Uruguay \u2022 Primera Division",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Shamakhi Fk",
+    "away": "Turan Tovuz",
+    "date": "16/02",
+    "time": "10:30",
+    "datetime": "2026-02-16T10:30:00",
+    "league": "Azerbaijan \u2022 Premier League",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Jong Fc Utrecht",
+    "away": "Willem Ii Tilburg",
+    "date": "16/02",
+    "time": "19:00",
+    "datetime": "2026-02-16T19:00:00",
+    "league": "Netherlands \u2022 Eerste Divisie",
+    "bookie": "Betika"
+  },
+  {
+    "home": "Future Fc",
+    "away": "Kahrabaa Ismailia",
+    "date": "16/02",
+    "time": "15:00",
+    "datetime": "2026-02-16T15:00:00",
+    "league": "Egypt \u2022 Premier League",
+    "bookie": "Betika"
+  }
+]

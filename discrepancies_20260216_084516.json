@@ -1,0 +1,35 @@
+[
+  {
+    "home": "Macclesfield",
+    "away": "Brentford",
+    "times": {
+      "Flashscore": "19:30",
+      "Betika": "19:30",
+      "Odibets": "22:30"
+    },
+    "league": "Unknown",
+    "timestamp": "2026-02-16 08:45:16"
+  },
+  {
+    "home": "Beitar Jerusalem",
+    "away": "Maccabi Tel Aviv",
+    "times": {
+      "Flashscore": "18:30",
+      "Betika": "18:30",
+      "Odibets": "21:30"
+    },
+    "league": "Unknown",
+    "timestamp": "2026-02-16 08:45:16"
+  },
+  {
+    "home": "Coventry",
+    "away": "Middlesbrough",
+    "times": {
+      "Flashscore": "20:00",
+      "Betika": "20:00",
+      "Odibets": "23:00"
+    },
+    "league": "Unknown",
+    "timestamp": "2026-02-16 08:45:16"
+  }
+]

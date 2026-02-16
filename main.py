@@ -1,4 +1,4 @@
-# main_comparison_fixed.py
+# main_comparison.py
 import time
 from datetime import datetime
 import json
@@ -6,11 +6,9 @@ import os
 from collections import defaultdict
 
 # Import your scrapers
-from flashscore_scraper import get_kickoff_times as get_flashscore_matches
+from flashscore_api import get_flashscore_matches  # 👈 Changed to API
 from betika_scraper import fetch_betika_matches
-
-
-
+from odibets_scraper import fetch_odibets_matches
 
 
 def safe_get_matches(scraper_func, source_name):
@@ -49,10 +47,12 @@ def safe_get_matches(scraper_func, source_name):
                         'away': match.get('away', 'Unknown'),
                         'kickoff': match['kickoff'],
                         'league': match.get('league', 'Unknown'),
+                        'date': match.get('date', 'Unknown'),
                         'source': source_name
                     })
                 else:
-                    print(f"⚠️ Skipping match without kickoff: {match.get('home', 'Unknown')}")
+                    print(
+                        f"⚠️ Skipping match without kickoff: {match.get('home', 'Unknown')} vs {match.get('away', 'Unknown')}")
 
         print(f"✅ {source_name}: {len(valid_matches)} valid matches with kickoff times")
         return valid_matches
@@ -61,38 +61,6 @@ def safe_get_matches(scraper_func, source_name):
         print(f"❌ TypeError in {source_name}: {e}")
         print(f"   This usually means you're trying to call a list as a function")
         return []
-    except Exception as e:
-        print(f"❌ Error fetching from {source_name}: {e}")
-        return []
-
-
-def safe_get_matches(scraper_func, source_name):
-    """
-    Safely fetch matches and ensure they have the required fields
-    """
-    try:
-        print(f"\n📡 Fetching from {source_name}...")
-        matches = scraper_func()
-
-        # Filter out matches without kickoff times
-        valid_matches = []
-        for match in matches:
-            if match and 'kickoff' in match and match['kickoff']:
-                # Ensure all required fields exist
-                valid_matches.append({
-                    'home': match.get('home', 'Unknown'),
-                    'away': match.get('away', 'Unknown'),
-                    'kickoff': match['kickoff'],
-                    'league': match.get('league', 'Unknown'),
-                    'source': source_name
-                })
-            else:
-                print(
-                    f"⚠️ Skipping match without kickoff time: {match.get('home', 'Unknown')} vs {match.get('away', 'Unknown')}")
-
-        print(f"✅ {source_name}: {len(valid_matches)} valid matches with kickoff times")
-        return valid_matches
-
     except Exception as e:
         print(f"❌ Error fetching from {source_name}: {e}")
         return []
@@ -111,7 +79,7 @@ def normalize_team_name(name):
     name = name.lower()
 
     # Remove common suffixes
-    name = re.sub(r'\s+fc$|\s+f\.c\.$|\s+united$|\s+utd$|\s+city$', '', name)
+    name = re.sub(r'\s+fc$|\s+f\.c\.$|\s+united$|\s+utd$|\s+city$|\s+cf$|\s+f\.c\.$', '', name)
 
     # Remove special characters
     name = re.sub(r'[^\w\s]', '', name)
@@ -146,67 +114,70 @@ def calculate_time_difference(time1, time2):
         return 999  # Return large number if time parsing fails
 
 
-def compare_kickoff_times(flashscore_matches, betika_matches):
+def compare_all_sources(flashscore_matches, betika_matches, odibets_matches):
     """
-    Compare kickoff times from both websites for the same matches
+    Compare kickoff times across all three websites
     """
     print("\n" + "=" * 80)
-    print("🔍 COMPARING KICKOFF TIMES")
+    print("🔍 COMPARING KICKOFF TIMES ACROSS ALL SOURCES")
     print("=" * 80)
 
-    discrepancies = []
+    all_discrepancies = []
 
-    if not flashscore_matches or not betika_matches:
-        print("⚠️ Not enough data to compare")
-        return discrepancies
+    # Create dictionaries for each source
+    flashscore_dict = {normalize_match_key(m['home'], m['away']): m for m in flashscore_matches}
+    betika_dict = {normalize_match_key(m['home'], m['away']): m for m in betika_matches}
+    odibets_dict = {normalize_match_key(m['home'], m['away']): m for m in odibets_matches}
 
-    # Create lookup dictionary for Flashscore matches
-    flashscore_dict = {}
-    for match in flashscore_matches:
-        key = normalize_match_key(match['home'], match['away'])
-        flashscore_dict[key] = match
+    # Get all unique match keys
+    all_keys = set(flashscore_dict.keys()) | set(betika_dict.keys()) | set(odibets_dict.keys())
 
-    print(f"\n📊 Flashscore: {len(flashscore_dict)} unique matches")
-    print(f"📊 Betika: {len(betika_matches)} matches")
+    print(f"\n📊 Total unique matches found across all sources: {len(all_keys)}")
 
-    # Compare each Betika match with Flashscore
-    matches_checked = 0
-
-    for betika_match in betika_matches:
-        key = normalize_match_key(betika_match['home'], betika_match['away'])
+    for key in all_keys:
+        match_info = {}
+        times = {}
 
         if key in flashscore_dict:
-            matches_checked += 1
-            flashscore_match = flashscore_dict[key]
+            match_info['flashscore'] = flashscore_dict[key]
+            times['Flashscore'] = flashscore_dict[key]['kickoff']
+        if key in betika_dict:
+            match_info['betika'] = betika_dict[key]
+            times['Betika'] = betika_dict[key]['kickoff']
+        if key in odibets_dict:
+            match_info['odibets'] = odibets_dict[key]
+            times['Odibets'] = odibets_dict[key]['kickoff']
 
-            if flashscore_match['kickoff'] != betika_match['kickoff']:
+        # If match appears in at least 2 sources, check for conflicts
+        if len(times) >= 2:
+            # Get the first match for display info
+            sample_match = next(iter(match_info.values()))
+
+            # Check if all times are the same
+            unique_times = set(times.values())
+
+            if len(unique_times) > 1:
+                # Conflict found!
                 discrepancy = {
-                    'home': betika_match['home'],
-                    'away': betika_match['away'],
-                    'flashscore_time': flashscore_match['kickoff'],
-                    'betika_time': betika_match['kickoff'],
-                    'league': betika_match.get('league', 'Unknown'),
-                    'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                    'time_difference': calculate_time_difference(
-                        flashscore_match['kickoff'],
-                        betika_match['kickoff']
-                    )
+                    'home': sample_match['home'],
+                    'away': sample_match['away'],
+                    'times': times,
+                    'league': sample_match.get('league', 'Unknown'),
+                    'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 }
-                discrepancies.append(discrepancy)
+                all_discrepancies.append(discrepancy)
 
                 # Print immediately when found
-                print("\n" + "!" * 60)
+                print("\n" + "!" * 70)
                 print("🚨 CONFLICT FOUND!")
-                print("!" * 60)
-                print(f"Match: {betika_match['home']} vs {betika_match['away']}")
-                print(f"League: {betika_match.get('league', 'Unknown')}")
-                print(f"Flashscore says: {flashscore_match['kickoff']}")
-                print(f"Betika says: {betika_match['kickoff']}")
-                print(f"Difference: {discrepancy['time_difference']} minutes")
-                print("!" * 60)
+                print("!" * 70)
+                print(f"Match: {sample_match['home']} vs {sample_match['away']}")
+                print(f"League: {sample_match.get('league', 'Unknown')}")
+                for source, time in times.items():
+                    print(f"   {source}: {time}")
+                print("!" * 70)
 
-    print(f"\n📊 Matches compared: {matches_checked}")
-    return discrepancies
+    return all_discrepancies
 
 
 def save_discrepancies(discrepancies):
@@ -239,24 +210,26 @@ def save_discrepancies(discrepancies):
         print(f"⚠️ Could not update log: {e}")
 
 
-def print_summary(flashscore_count, betika_count, discrepancies):
+def print_summary(flashscore_count, betika_count, odibets_count, discrepancies):
     """Print summary of current run"""
     print("\n" + "=" * 80)
     print("📊 RUN SUMMARY")
     print("=" * 80)
     print(f"⏰ Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print(f"📈 Flashscore matches (with times): {flashscore_count}")
-    print(f"📈 Betika matches (with times): {betika_count}")
+    print(f"📈 Flashscore matches: {flashscore_count}")
+    print(f"📈 Betika matches: {betika_count}")
+    print(f"📈 Odibets matches: {odibets_count}")
+    print(f"📈 TOTAL matches: {flashscore_count + betika_count + odibets_count}")
     print(f"🚨 Conflicts found: {len(discrepancies)}")
 
     if discrepancies:
         print("\n❌ CONFLICTS DETECTED!")
-        for d in discrepancies:
-            print(f"   • {d['home']} vs {d['away']}:")
-            print(
-                f"     Flashscore {d['flashscore_time']} vs Betika {d['betika_time']} (diff: {d['time_difference']}min)")
+        for i, d in enumerate(discrepancies, 1):
+            print(f"\n   {i}. {d['home']} vs {d['away']}")
+            for source, time in d['times'].items():
+                print(f"      {source}: {time}")
     else:
-        print("\n✅ All kickoff times match!")
+        print("\n✅ All kickoff times match across all sources!")
     print("=" * 80)
 
 
@@ -267,8 +240,8 @@ def send_alert(discrepancies):
 
     try:
         for d in discrepancies[:3]:
-            os.system(
-                f'notify-send "🚨 Time Conflict" "{d["home"]} vs {d["away"]}: {d["flashscore_time"]} vs {d["betika_time"]}"')
+            times_str = ' vs '.join([f"{s}:{t}" for s, t in d['times'].items()])
+            os.system(f'notify-send "🚨 Time Conflict" "{d["home"]} vs {d["away"]}: {times_str}"')
     except:
         pass
 
@@ -278,7 +251,7 @@ def main_loop(interval_minutes=20):
     Main loop that runs every X minutes
     """
     print("=" * 80)
-    print("⚽ KICKOFF TIME COMPARISON MONITOR")
+    print("⚽ KICKOFF TIME COMPARISON MONITOR - 3 SOURCES")
     print("=" * 80)
     print(f"🕒 Checking every {interval_minutes} minutes")
     print(f"📅 Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -293,17 +266,19 @@ def main_loop(interval_minutes=20):
         print(f"{'#' * 60}")
 
         try:
-            # Safely fetch matches from both sources
-            flashscore_matches = safe_get_matches(get_flashscore_matches, "Flashscore")
+            # Safely fetch matches from all three sources
+            flashscore_matches = safe_get_matches(get_flashscore_matches, "Flashscore (API)")
             betika_matches = safe_get_matches(fetch_betika_matches, "Betika")
+            odibets_matches = safe_get_matches(fetch_odibets_matches, "Odibets")
 
             # Compare them
-            discrepancies = compare_kickoff_times(flashscore_matches, betika_matches)
+            discrepancies = compare_all_sources(flashscore_matches, betika_matches, odibets_matches)
 
             # Print summary
             print_summary(
                 len(flashscore_matches),
                 len(betika_matches),
+                len(odibets_matches),
                 discrepancies
             )
 
@@ -332,17 +307,19 @@ def main_loop(interval_minutes=20):
 
 def quick_test():
     """Run one comparison immediately"""
-    print("🔧 QUICK TEST MODE")
+    print("🔧 QUICK TEST MODE - 3 SOURCES")
     print("=" * 60)
 
-    flashscore_matches = safe_get_matches(get_flashscore_matches, "Flashscore")
-    betika_matches = safe_get_matches(fetch_betika_matches(), "Betika")
+    flashscore_matches = safe_get_matches(get_flashscore_matches, "Flashscore (API)")
+    betika_matches = safe_get_matches(fetch_betika_matches, "Betika")
+    odibets_matches = safe_get_matches(fetch_odibets_matches, "Odibets")
 
-    discrepancies = compare_kickoff_times(flashscore_matches, betika_matches)
+    discrepancies = compare_all_sources(flashscore_matches, betika_matches, odibets_matches)
 
     print_summary(
         len(flashscore_matches),
         len(betika_matches),
+        len(odibets_matches),
         discrepancies
     )
 
@@ -351,7 +328,7 @@ def quick_test():
 
 
 if __name__ == "__main__":
-    print("⚽ KICKOFF TIME COMPARISON SYSTEM")
+    print("⚽ KICKOFF TIME COMPARISON SYSTEM - 3 BOOKMAKERS")
     print("=" * 60)
     print("1. Run once (quick test)")
     print("2. Run every 20 minutes (monitor mode)")

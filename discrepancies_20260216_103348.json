@@ -1,0 +1,73 @@
+[
+  {
+    "home": "Macclesfield Fc",
+    "away": "Brentford",
+    "times": {
+      "Betika": "19:30",
+      "Odibets": "22:30"
+    },
+    "league": "England \u2022 FA Cup",
+    "timestamp": "2026-02-16 10:33:48"
+  },
+  {
+    "home": "Coventry",
+    "away": "Middlesbrough",
+    "times": {
+      "Flashscore": "23:00",
+      "Betika": "20:00",
+      "Odibets": "23:00"
+    },
+    "league": "England: Championship",
+    "timestamp": "2026-02-16 10:33:48"
+  },
+  {
+    "home": "Girona",
+    "away": "Barcelona",
+    "times": {
+      "Flashscore": "23:00",
+      "Betika": "20:00"
+    },
+    "league": "Spain: LaLiga",
+    "timestamp": "2026-02-16 10:33:48"
+  },
+  {
+    "home": "Beitar Jerusalem",
+    "away": "Maccabi Tel Aviv",
+    "times": {
+      "Betika": "18:30",
+      "Odibets": "21:30"
+    },
+    "league": "Israel \u2022 Premier League",
+    "timestamp": "2026-02-16 10:33:48"
+  },
+  {
+    "home": "Albion",
+    "away": "CA Cerro",
+    "times": {
+      "Flashscore": "01:00",
+      "Betika": "22:00"
+    },
+    "league": "Uruguay: Liga AUF Uruguaya - Apertura",
+    "timestamp": "2026-02-16 10:33:48"
+  },
+  {
+    "home": "Quindio",
+    "away": "Barranquilla",
+    "times": {
+      "Flashscore": "03:30",
+      "Betika": "00:30"
+    },
+    "league": "Colombia: Primera B - Apertura",
+    "timestamp": "2026-02-16 10:33:48"
+  },
+  {
+    "home": "Fluminense",
+    "away": "Bangu",
+    "times": {
+      "Flashscore": "00:00",
+      "Betika": "21:00"
+    },
+    "league": "Brazil: Carioca - Taca Guanabara - Play Offs",
+    "timestamp": "2026-02-16 10:33:48"
+  }
+]

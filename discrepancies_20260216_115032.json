@@ -1,0 +1,80 @@
+[
+  {
+    "home": "Rio Ave",
+    "away": "Moreirense",
+    "times": {
+      "Flashscore": "23:15",
+      "Odibets": "23:15",
+      "MozzartBet": "20:15"
+    },
+    "league": "Portugal: Liga Portugal",
+    "date": "16/02",
+    "timestamp": "2026-02-16 11:50:32"
+  },
+  {
+    "home": "Quindio",
+    "away": "Barranquilla",
+    "times": {
+      "Flashscore": "03:30",
+      "MozzartBet": "00:30"
+    },
+    "league": "Colombia: Primera B - Apertura",
+    "date": "17/02",
+    "timestamp": "2026-02-16 11:50:32"
+  },
+  {
+    "home": "Nova Iguacu",
+    "away": "Marica",
+    "times": {
+      "Flashscore": "23:00",
+      "MozzartBet": "20:00"
+    },
+    "league": "Brazil: Carioca - Relegation Group",
+    "date": "16/02",
+    "timestamp": "2026-02-16 11:50:32"
+  },
+  {
+    "home": "Santos W",
+    "away": "Gremio W",
+    "times": {
+      "Flashscore": "01:00",
+      "MozzartBet": "22:00"
+    },
+    "league": "Brazil: Brasileiro Women",
+    "date": "17/02",
+    "timestamp": "2026-02-16 11:50:32"
+  },
+  {
+    "home": "Fluminense",
+    "away": "Bangu",
+    "times": {
+      "Flashscore": "00:00",
+      "MozzartBet": "21:00"
+    },
+    "league": "Brazil: Carioca - Taca Guanabara - Play Offs",
+    "date": "17/02",
+    "timestamp": "2026-02-16 11:50:32"
+  },
+  {
+    "home": "Macclesfield FC",
+    "away": "Brentford FC",
+    "times": {
+      "Odibets": "22:30",
+      "MozzartBet": "19:30"
+    },
+    "league": "Football",
+    "date": "16/02",
+    "timestamp": "2026-02-16 11:50:32"
+  },
+  {
+    "home": "Girona",
+    "away": "Barcelona",
+    "times": {
+      "Flashscore": "23:00",
+      "MozzartBet": "20:00"
+    },
+    "league": "Spain: LaLiga",
+    "date": "16/02",
+    "timestamp": "2026-02-16 11:50:32"
+  }
+]

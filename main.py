@@ -1,4 +1,4 @@
-# main_comparison.py
+# main.py
 import time
 from datetime import datetime, timedelta
 import json
@@ -7,6 +7,7 @@ import os
 # Import your scrapers
 from flashscore_api import get_flashscore_matches
 from odibets_scraper import fetch_odibets_matches
+from mozzart_scraper import fetch_mozzartbet_matches
 
 
 def safe_get_matches(scraper_func, source_name):
@@ -111,12 +112,12 @@ def calculate_time_difference(time1, time2):
         return 999
 
 
-def compare_flashscore_odibets(flashscore_matches, odibets_matches):
+def compare_all_sources(flashscore_matches, odibets_matches, mozzartbet_matches):
     """
-    Compare kickoff times between Flashscore and Odibets only
+    Compare kickoff times across all three sources
     """
     print("\n" + "=" * 80)
-    print("🔍 COMPARING FLASHSCORE VS ODIBETS")
+    print("🔍 COMPARING KICKOFF TIMES ACROSS ALL SOURCES")
     print("=" * 80)
 
     # Get today's and tomorrow's dates
@@ -126,83 +127,76 @@ def compare_flashscore_odibets(flashscore_matches, odibets_matches):
     print(f"\n📅 Today's date: {today}")
     print(f"📅 Tomorrow's date: {tomorrow}")
 
-    # Separate Flashscore matches by date
+    # Separate Flashscore matches by date (API returns tomorrow's matches)
     flashscore_today = [m for m in flashscore_matches if m.get('date') == today]
     flashscore_tomorrow = [m for m in flashscore_matches if m.get('date') == tomorrow]
 
     print(f"\n📊 Flashscore: {len(flashscore_today)} today, {len(flashscore_tomorrow)} tomorrow")
     print(f"📊 Odibets: {len(odibets_matches)} matches")
+    print(f"📊 MozzartBet: {len(mozzartbet_matches)} matches")
 
     # Create lookup dictionaries
+    flashscore_dict = {normalize_match_key(m['home'], m['away']): m for m in flashscore_matches}
     odibets_dict = {normalize_match_key(m['home'], m['away']): m for m in odibets_matches}
-    flashscore_today_dict = {normalize_match_key(m['home'], m['away']): m for m in flashscore_today}
-    flashscore_tomorrow_dict = {normalize_match_key(m['home'], m['away']): m for m in flashscore_tomorrow}
+    mozzartbet_dict = {normalize_match_key(m['home'], m['away']): m for m in mozzartbet_matches}
+
+    # Get all unique match keys
+    all_keys = set(flashscore_dict.keys()) | set(odibets_dict.keys()) | set(mozzartbet_dict.keys())
+
+    print(f"\n📊 Total unique matches found across all sources: {len(all_keys)}")
 
     all_discrepancies = []
 
-    # 1. Compare Flashscore (today) vs Odibets (today)
-    if flashscore_today_dict:
-        print("\n🔍 Comparing TODAY'S matches...")
-        common_today = set(flashscore_today_dict.keys()) & set(odibets_dict.keys())
+    for key in all_keys:
+        match_info = {}
+        times = {}
 
-        for key in common_today:
-            flash_match = flashscore_today_dict[key]
-            odibets_match = odibets_dict[key]
+        if key in flashscore_dict:
+            match_info['flashscore'] = flashscore_dict[key]
+            times['Flashscore'] = flashscore_dict[key]['kickoff']
+        if key in odibets_dict:
+            match_info['odibets'] = odibets_dict[key]
+            times['Odibets'] = odibets_dict[key]['kickoff']
+        if key in mozzartbet_dict:
+            match_info['mozzartbet'] = mozzartbet_dict[key]
+            times['MozzartBet'] = mozzartbet_dict[key]['kickoff']
 
-            if flash_match['kickoff'] != odibets_match['kickoff']:
+        # If match appears in at least 2 sources, check for conflicts
+        if len(times) >= 2:
+            # Get the first match for display info
+            sample_match = next(iter(match_info.values()))
+
+            # Check if all times are the same
+            unique_times = set(times.values())
+
+            if len(unique_times) > 1:
+                # Conflict found!
                 discrepancy = {
-                    'home': flash_match['home'],
-                    'away': flash_match['away'],
-                    'flashscore_time': flash_match['kickoff'],
-                    'odibets_time': odibets_match['kickoff'],
-                    'league': flash_match.get('league', 'Unknown'),
-                    'date': today,
-                    'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                    'time_difference': calculate_time_difference(flash_match['kickoff'], odibets_match['kickoff'])
+                    'home': sample_match['home'],
+                    'away': sample_match['away'],
+                    'times': times,
+                    'league': sample_match.get('league', 'Unknown'),
+                    'date': sample_match.get('date', 'Unknown'),
+                    'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 }
                 all_discrepancies.append(discrepancy)
 
-                print("\n" + "!" * 60)
-                print("🚨 CONFLICT FOUND (TODAY)!")
-                print("!" * 60)
-                print(f"Match: {flash_match['home']} vs {flash_match['away']}")
-                print(f"League: {flash_match.get('league', 'Unknown')}")
-                print(f"Flashscore: {flash_match['kickoff']}")
-                print(f"Odibets: {odibets_match['kickoff']}")
-                print(f"Difference: {discrepancy['time_difference']} minutes")
-                print("!" * 60)
+                # Print immediately when found
+                print("\n" + "!" * 70)
+                print("🚨 CONFLICT FOUND!")
+                print("!" * 70)
+                print(f"Match: {sample_match['home']} vs {sample_match['away']}")
+                print(f"League: {sample_match.get('league', 'Unknown')}")
+                print(f"Date: {sample_match.get('date', 'Unknown')}")
+                for source, time in times.items():
+                    print(f"   {source}: {time}")
 
-    # 2. Compare Flashscore (tomorrow) vs Odibets (tomorrow)
-    if flashscore_tomorrow_dict:
-        print("\n🔍 Comparing TOMORROW'S matches...")
-        common_tomorrow = set(flashscore_tomorrow_dict.keys()) & set(odibets_dict.keys())
-
-        for key in common_tomorrow:
-            flash_match = flashscore_tomorrow_dict[key]
-            odibets_match = odibets_dict[key]
-
-            if flash_match['kickoff'] != odibets_match['kickoff']:
-                discrepancy = {
-                    'home': flash_match['home'],
-                    'away': flash_match['away'],
-                    'flashscore_time': flash_match['kickoff'],
-                    'odibets_time': odibets_match['kickoff'],
-                    'league': flash_match.get('league', 'Unknown'),
-                    'date': tomorrow,
-                    'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                    'time_difference': calculate_time_difference(flash_match['kickoff'], odibets_match['kickoff'])
-                }
-                all_discrepancies.append(discrepancy)
-
-                print("\n" + "!" * 60)
-                print("🚨 CONFLICT FOUND (TOMORROW)!")
-                print("!" * 60)
-                print(f"Match: {flash_match['home']} vs {flash_match['away']}")
-                print(f"League: {flash_match.get('league', 'Unknown')}")
-                print(f"Flashscore: {flash_match['kickoff']}")
-                print(f"Odibets: {odibets_match['kickoff']}")
-                print(f"Difference: {discrepancy['time_difference']} minutes")
-                print("!" * 60)
+                # Calculate and show time differences
+                time_values = list(times.values())
+                if len(time_values) == 2:
+                    diff = calculate_time_difference(time_values[0], time_values[1])
+                    print(f"   Difference: {diff} minutes")
+                print("!" * 70)
 
     print(f"\n📊 Total conflicts found: {len(all_discrepancies)}")
     return all_discrepancies
@@ -234,11 +228,12 @@ def save_discrepancies(discrepancies):
 
         with open(log_filename, 'w') as f:
             json.dump(log, f, indent=2)
+        print(f"📝 Updated running log: {log_filename}")
     except Exception as e:
         print(f"⚠️ Could not update log: {e}")
 
 
-def print_summary(flashscore_count, odibets_count, discrepancies):
+def print_summary(flashscore_count, odibets_count, mozzartbet_count, discrepancies):
     """Print summary of current run"""
     print("\n" + "=" * 80)
     print("📊 RUN SUMMARY")
@@ -246,19 +241,20 @@ def print_summary(flashscore_count, odibets_count, discrepancies):
     print(f"⏰ Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"📈 Flashscore matches: {flashscore_count}")
     print(f"📈 Odibets matches: {odibets_count}")
-    print(f"📈 TOTAL matches: {flashscore_count + odibets_count}")
+    print(f"📈 MozzartBet matches: {mozzartbet_count}")
+    print(f"📈 TOTAL matches: {flashscore_count + odibets_count + mozzartbet_count}")
     print(f"🚨 Conflicts found: {len(discrepancies)}")
 
     if discrepancies:
         print("\n❌ CONFLICTS DETECTED!")
         for i, d in enumerate(discrepancies, 1):
             print(f"\n   {i}. {d['home']} vs {d['away']}")
+            print(f"      League: {d.get('league', 'Unknown')}")
             print(f"      Date: {d.get('date', 'Unknown')}")
-            print(f"      Flashscore: {d['flashscore_time']}")
-            print(f"      Odibets: {d['odibets_time']}")
-            print(f"      Difference: {d['time_difference']} minutes")
+            for source, time in d['times'].items():
+                print(f"      {source}: {time}")
     else:
-        print("\n✅ All kickoff times match between Flashscore and Odibets!")
+        print("\n✅ All kickoff times match across all sources!")
     print("=" * 80)
 
 
@@ -269,8 +265,8 @@ def send_alert(discrepancies):
 
     try:
         for d in discrepancies[:3]:
-            msg = f"{d['home']} vs {d['away']}: Flashscore {d['flashscore_time']} vs Odibets {d['odibets_time']}"
-            os.system(f'notify-send "🚨 Time Conflict" "{msg}"')
+            times_str = ' vs '.join([f"{s}:{t}" for s, t in d['times'].items()])
+            os.system(f'notify-send "🚨 Time Conflict" "{d["home"]} vs {d["away"]}: {times_str}"')
     except:
         pass
 
@@ -280,7 +276,7 @@ def main_loop(interval_minutes=20):
     Main loop that runs every X minutes
     """
     print("=" * 80)
-    print("⚽ KICKOFF TIME COMPARISON MONITOR - FLASHSCORE vs ODIBETS")
+    print("⚽ KICKOFF TIME COMPARISON MONITOR - 3 SOURCES")
     print("=" * 80)
     print(f"🕒 Checking every {interval_minutes} minutes")
     print(f"📅 Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -295,17 +291,19 @@ def main_loop(interval_minutes=20):
         print(f"{'#' * 60}")
 
         try:
-            # Safely fetch matches from both sources
+            # Safely fetch matches from all three sources
             flashscore_matches = safe_get_matches(get_flashscore_matches, "Flashscore (API)")
             odibets_matches = safe_get_matches(fetch_odibets_matches, "Odibets")
+            mozzartbet_matches = safe_get_matches(fetch_mozzartbet_matches, "MozzartBet")
 
             # Compare them
-            discrepancies = compare_flashscore_odibets(flashscore_matches, odibets_matches)
+            discrepancies = compare_all_sources(flashscore_matches, odibets_matches, mozzartbet_matches)
 
             # Print summary
             print_summary(
                 len(flashscore_matches),
                 len(odibets_matches),
+                len(mozzartbet_matches),
                 discrepancies
             )
 
@@ -334,17 +332,19 @@ def main_loop(interval_minutes=20):
 
 def quick_test():
     """Run one comparison immediately"""
-    print("🔧 QUICK TEST MODE - FLASHSCORE vs ODIBETS")
+    print("🔧 QUICK TEST MODE - 3 SOURCES")
     print("=" * 60)
 
     flashscore_matches = safe_get_matches(get_flashscore_matches, "Flashscore (API)")
     odibets_matches = safe_get_matches(fetch_odibets_matches, "Odibets")
+    mozzartbet_matches = safe_get_matches(fetch_mozzartbet_matches, "MozzartBet")
 
-    discrepancies = compare_flashscore_odibets(flashscore_matches, odibets_matches)
+    discrepancies = compare_all_sources(flashscore_matches, odibets_matches, mozzartbet_matches)
 
     print_summary(
         len(flashscore_matches),
         len(odibets_matches),
+        len(mozzartbet_matches),
         discrepancies
     )
 
@@ -353,7 +353,7 @@ def quick_test():
 
 
 if __name__ == "__main__":
-    print("⚽ KICKOFF TIME COMPARISON SYSTEM - FLASHSCORE vs ODIBETS")
+    print("⚽ KICKOFF TIME COMPARISON SYSTEM - 3 BOOKMAKERS")
     print("=" * 60)
     print("1. Run once (quick test)")
     print("2. Run every 20 minutes (monitor mode)")

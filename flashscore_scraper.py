@@ -1,5 +1,6 @@
 # flashscore_scraper.py
 from selenium import webdriver
+from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
 from datetime import datetime
 import time

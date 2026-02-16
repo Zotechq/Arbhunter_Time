@@ -1,90 +1,373 @@
-# main.py - Entry point
-# New focus: Time-Discrepancy Hunting as primary output
-
+# main_comparison_fixed.py
 import time
-import schedule
-from config import REFRESH_INTERVAL_MINUTES, BOOKMAKER_URLS, CSV_MATCHES, CSV_VARIATIONS, CSV_ARBS
-from network import fetch_page
-from scraper import extract_matches
-from engine import detect_variations, detect_arbs, detect_profitable_variations  # detect_arbs deprioritized
-from output import display_matches, display_time_variations, log_to_csv, display_profitable_opportunities
-from engine import analyze_all_discrepancies
-from output import display_profitable_opportunities
+from datetime import datetime
+import json
+import os
+from collections import defaultdict
 
-request_counter = 0
+# Import your scrapers
+from flashscore_scraper import get_kickoff_times as get_flashscore_matches
+from betika_scraper import fetch_betika_matches
 
 
-def main_loop():
-    global request_counter
-    print(f"\n=== Time-Hunting cycle at {time.strftime('%Y-%m-%d %H:%M:%S')} ===\n")
 
-    all_matches = []
 
-    for bookie_url, bookie_name in BOOKMAKER_URLS:
-        request_counter += 1
-        print(f"Scraping {bookie_name} ({bookie_url})...")
-        soup = fetch_page(bookie_url, request_counter)
-        if soup:
-            matches = extract_matches(soup, bookie_name)
-            print(f"  → {len(matches)} events")
-            all_matches.extend(matches)
 
-            print(f"\n📊 MATCH COUNT BY BOOKMAKER:")
-            bookie_counts = {}
-            for match in all_matches:
-                bookie = match['bookie']
-                bookie_counts[bookie] = bookie_counts.get(bookie, 0) + 1
+def safe_get_matches(scraper_func, source_name):
+    """
+    Safely fetch matches and ensure they have the required fields
+    """
+    try:
+        print(f"\n📡 Fetching from {source_name}...")
 
-            for bookie, count in bookie_counts.items():
-                print(f"   • {bookie}: {count} matches")
+        # Check if scraper_func is actually callable
+        if not callable(scraper_func):
+            print(f"❌ ERROR: {source_name} scraper is not callable!")
+            print(f"   Type: {type(scraper_func)}")
+            return []
 
-            print("\n🔍 SportPesa matches found:")
-            sportpesa_matches = [m for m in all_matches if m['bookie'] == 'SportPesa']
-            for m in sportpesa_matches[:5]:  # Show first 5
-                print(f"  • {m['home']} vs {m['away']} @ {m['kickoff']}")
-            if len(sportpesa_matches) > 5:
-                print(f"  ... and {len(sportpesa_matches) - 5} more")
+        # Call the function
+        matches = scraper_func()
 
-            # Also show which bookmakers are missing
-            all_bookies = ['Odibets', 'Betika', 'SportPesa', 'Xscores']
-            for bookie in all_bookies:
-                if bookie not in bookie_counts:
-                    print(f"   • {bookie}: 0 matches ⚠️")
-            # 👆 END OF DEBUG CODE 👆
+        # Check what we got
+        if matches is None:
+            print(f"⚠️ {source_name} returned None")
+            return []
 
-    if not all_matches:
-        print("No matches this cycle.")
+        if not isinstance(matches, list):
+            print(f"⚠️ {source_name} returned {type(matches)}, expected list")
+            return []
+
+        # Filter out matches without kickoff times
+        valid_matches = []
+        for match in matches:
+            if match and isinstance(match, dict):
+                if 'kickoff' in match and match['kickoff']:
+                    # Ensure all required fields exist
+                    valid_matches.append({
+                        'home': match.get('home', 'Unknown'),
+                        'away': match.get('away', 'Unknown'),
+                        'kickoff': match['kickoff'],
+                        'league': match.get('league', 'Unknown'),
+                        'source': source_name
+                    })
+                else:
+                    print(f"⚠️ Skipping match without kickoff: {match.get('home', 'Unknown')}")
+
+        print(f"✅ {source_name}: {len(valid_matches)} valid matches with kickoff times")
+        return valid_matches
+
+    except TypeError as e:
+        print(f"❌ TypeError in {source_name}: {e}")
+        print(f"   This usually means you're trying to call a list as a function")
+        return []
+    except Exception as e:
+        print(f"❌ Error fetching from {source_name}: {e}")
+        return []
+
+
+def safe_get_matches(scraper_func, source_name):
+    """
+    Safely fetch matches and ensure they have the required fields
+    """
+    try:
+        print(f"\n📡 Fetching from {source_name}...")
+        matches = scraper_func()
+
+        # Filter out matches without kickoff times
+        valid_matches = []
+        for match in matches:
+            if match and 'kickoff' in match and match['kickoff']:
+                # Ensure all required fields exist
+                valid_matches.append({
+                    'home': match.get('home', 'Unknown'),
+                    'away': match.get('away', 'Unknown'),
+                    'kickoff': match['kickoff'],
+                    'league': match.get('league', 'Unknown'),
+                    'source': source_name
+                })
+            else:
+                print(
+                    f"⚠️ Skipping match without kickoff time: {match.get('home', 'Unknown')} vs {match.get('away', 'Unknown')}")
+
+        print(f"✅ {source_name}: {len(valid_matches)} valid matches with kickoff times")
+        return valid_matches
+
+    except Exception as e:
+        print(f"❌ Error fetching from {source_name}: {e}")
+        return []
+
+
+def normalize_team_name(name):
+    """
+    Normalize team name for matching across different websites
+    """
+    import re
+
+    if not name:
+        return ""
+
+    # Convert to lowercase
+    name = name.lower()
+
+    # Remove common suffixes
+    name = re.sub(r'\s+fc$|\s+f\.c\.$|\s+united$|\s+utd$|\s+city$', '', name)
+
+    # Remove special characters
+    name = re.sub(r'[^\w\s]', '', name)
+
+    # Remove extra spaces
+    name = ' '.join(name.split())
+
+    return name
+
+
+def normalize_match_key(home, away):
+    """
+    Create a normalized key to match same teams across different websites
+    """
+    home_norm = normalize_team_name(home)
+    away_norm = normalize_team_name(away)
+
+    # Sort teams alphabetically to handle home/away mismatches
+    teams = sorted([home_norm, away_norm])
+    return f"{teams[0]}-{teams[1]}"
+
+
+def calculate_time_difference(time1, time2):
+    """Calculate minutes difference between two times"""
+    try:
+        t1 = datetime.strptime(time1, '%H:%M')
+        t2 = datetime.strptime(time2, '%H:%M')
+
+        diff_minutes = abs((t1 - t2).total_seconds() / 60)
+        return int(diff_minutes)
+    except:
+        return 999  # Return large number if time parsing fails
+
+
+def compare_kickoff_times(flashscore_matches, betika_matches):
+    """
+    Compare kickoff times from both websites for the same matches
+    """
+    print("\n" + "=" * 80)
+    print("🔍 COMPARING KICKOFF TIMES")
+    print("=" * 80)
+
+    discrepancies = []
+
+    if not flashscore_matches or not betika_matches:
+        print("⚠️ Not enough data to compare")
+        return discrepancies
+
+    # Create lookup dictionary for Flashscore matches
+    flashscore_dict = {}
+    for match in flashscore_matches:
+        key = normalize_match_key(match['home'], match['away'])
+        flashscore_dict[key] = match
+
+    print(f"\n📊 Flashscore: {len(flashscore_dict)} unique matches")
+    print(f"📊 Betika: {len(betika_matches)} matches")
+
+    # Compare each Betika match with Flashscore
+    matches_checked = 0
+
+    for betika_match in betika_matches:
+        key = normalize_match_key(betika_match['home'], betika_match['away'])
+
+        if key in flashscore_dict:
+            matches_checked += 1
+            flashscore_match = flashscore_dict[key]
+
+            if flashscore_match['kickoff'] != betika_match['kickoff']:
+                discrepancy = {
+                    'home': betika_match['home'],
+                    'away': betika_match['away'],
+                    'flashscore_time': flashscore_match['kickoff'],
+                    'betika_time': betika_match['kickoff'],
+                    'league': betika_match.get('league', 'Unknown'),
+                    'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                    'time_difference': calculate_time_difference(
+                        flashscore_match['kickoff'],
+                        betika_match['kickoff']
+                    )
+                }
+                discrepancies.append(discrepancy)
+
+                # Print immediately when found
+                print("\n" + "!" * 60)
+                print("🚨 CONFLICT FOUND!")
+                print("!" * 60)
+                print(f"Match: {betika_match['home']} vs {betika_match['away']}")
+                print(f"League: {betika_match.get('league', 'Unknown')}")
+                print(f"Flashscore says: {flashscore_match['kickoff']}")
+                print(f"Betika says: {betika_match['kickoff']}")
+                print(f"Difference: {discrepancy['time_difference']} minutes")
+                print("!" * 60)
+
+    print(f"\n📊 Matches compared: {matches_checked}")
+    return discrepancies
+
+
+def save_discrepancies(discrepancies):
+    """Save conflicts to file"""
+    if not discrepancies:
         return
 
-    #display_matches(all_matches)
-    discrepancies = analyze_all_discrepancies(all_matches)
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    filename = f"discrepancies_{timestamp}.json"
+
+    with open(filename, 'w') as f:
+        json.dump(discrepancies, f, indent=2)
+
+    print(f"\n💾 Saved {len(discrepancies)} conflicts to {filename}")
+
+    # Also append to running log
+    log_filename = "discrepancy_log.json"
+    try:
+        if os.path.exists(log_filename):
+            with open(log_filename, 'r') as f:
+                log = json.load(f)
+        else:
+            log = []
+
+        log.extend(discrepancies)
+
+        with open(log_filename, 'w') as f:
+            json.dump(log, f, indent=2)
+    except Exception as e:
+        print(f"⚠️ Could not update log: {e}")
+
+
+def print_summary(flashscore_count, betika_count, discrepancies):
+    """Print summary of current run"""
+    print("\n" + "=" * 80)
+    print("📊 RUN SUMMARY")
+    print("=" * 80)
+    print(f"⏰ Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"📈 Flashscore matches (with times): {flashscore_count}")
+    print(f"📈 Betika matches (with times): {betika_count}")
+    print(f"🚨 Conflicts found: {len(discrepancies)}")
+
     if discrepancies:
-        display_profitable_opportunities(discrepancies)
-        # Optional: Save to CSV
-        log_to_csv(discrepancies, "discrepancies.csv")
-    #log_to_csv(all_matches, CSV_MATCHES)
-
-    '''profitable_ops = detect_profitable_variations(all_matches)
-    if profitable_ops:
-        display_profitable_opportunities(profitable_ops)
-        # Also log them for tracking
-        log_to_csv(profitable_ops, "profitable_opportunities.csv")'''
+        print("\n❌ CONFLICTS DETECTED!")
+        for d in discrepancies:
+            print(f"   • {d['home']} vs {d['away']}:")
+            print(
+                f"     Flashscore {d['flashscore_time']} vs Betika {d['betika_time']} (diff: {d['time_difference']}min)")
+    else:
+        print("\n✅ All kickoff times match!")
+    print("=" * 80)
 
 
-    # Deprioritized arb detection – only log, no print
-    arbs = detect_arbs(all_matches)
-    if arbs:
-        log_to_csv(arbs, CSV_ARBS)  # Optional silent logging
+def send_alert(discrepancies):
+    """Send desktop notification for conflicts"""
+    if not discrepancies:
+        return
 
-    print("Cycle complete.\n")
+    try:
+        for d in discrepancies[:3]:
+            os.system(
+                f'notify-send "🚨 Time Conflict" "{d["home"]} vs {d["away"]}: {d["flashscore_time"]} vs {d["betika_time"]}"')
+    except:
+        pass
 
+
+def main_loop(interval_minutes=20):
+    """
+    Main loop that runs every X minutes
+    """
+    print("=" * 80)
+    print("⚽ KICKOFF TIME COMPARISON MONITOR")
+    print("=" * 80)
+    print(f"🕒 Checking every {interval_minutes} minutes")
+    print(f"📅 Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print("=" * 80)
+
+    run_count = 0
+
+    while True:
+        run_count += 1
+        print(f"\n{'#' * 60}")
+        print(f"🔄 RUN #{run_count} - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"{'#' * 60}")
+
+        try:
+            # Safely fetch matches from both sources
+            flashscore_matches = safe_get_matches(get_flashscore_matches, "Flashscore")
+            betika_matches = safe_get_matches(fetch_betika_matches, "Betika")
+
+            # Compare them
+            discrepancies = compare_kickoff_times(flashscore_matches, betika_matches)
+
+            # Print summary
+            print_summary(
+                len(flashscore_matches),
+                len(betika_matches),
+                discrepancies
+            )
+
+            # Save conflicts
+            if discrepancies:
+                save_discrepancies(discrepancies)
+                send_alert(discrepancies)
+
+            # Wait for next run
+            next_run = datetime.now().timestamp() + (interval_minutes * 60)
+            next_run_time = datetime.fromtimestamp(next_run)
+
+            print(f"\n⏳ Waiting {interval_minutes} minutes until next run...")
+            print(f"📅 Next run at: {next_run_time.strftime('%Y-%m-%d %H:%M:%S')}")
+
+            time.sleep(interval_minutes * 60)
+
+        except KeyboardInterrupt:
+            print("\n\n👋 Stopping monitor...")
+            break
+        except Exception as e:
+            print(f"\n❌ Error in main loop: {e}")
+            print("⏳ Waiting 5 minutes before retry...")
+            time.sleep(5 * 60)
+
+
+def quick_test():
+    """Run one comparison immediately"""
+    print("🔧 QUICK TEST MODE")
+    print("=" * 60)
+
+    flashscore_matches = safe_get_matches(get_flashscore_matches, "Flashscore")
+    betika_matches = safe_get_matches(fetch_betika_matches(), "Betika")
+
+    discrepancies = compare_kickoff_times(flashscore_matches, betika_matches)
+
+    print_summary(
+        len(flashscore_matches),
+        len(betika_matches),
+        discrepancies
+    )
+
+    if discrepancies:
+        save_discrepancies(discrepancies)
 
 
 if __name__ == "__main__":
-    print("ArbHunter Time Hunter v2.0")
-    print(f"Running every {REFRESH_INTERVAL_MINUTES} min.\n")
-    schedule.every(REFRESH_INTERVAL_MINUTES).minutes.do(main_loop)
-    main_loop()  # Initial run
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
+    print("⚽ KICKOFF TIME COMPARISON SYSTEM")
+    print("=" * 60)
+    print("1. Run once (quick test)")
+    print("2. Run every 20 minutes (monitor mode)")
+    print("3. Run every X minutes (custom interval)")
+
+    choice = input("\nEnter choice (1, 2, or 3): ").strip()
+
+    if choice == "1":
+        quick_test()
+    elif choice == "2":
+        main_loop(20)
+    elif choice == "3":
+        try:
+            minutes = int(input("Enter interval in minutes: "))
+            main_loop(minutes)
+        except:
+            print("❌ Invalid number")
+    else:
+        print("❌ Invalid choice")

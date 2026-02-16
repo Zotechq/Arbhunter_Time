@@ -1,174 +1,140 @@
-# betika_final_working.py
-from selenium import webdriver
-from selenium.webdriver.firefox.options import Options
-from selenium.webdriver.common.by import By
-from bs4 import BeautifulSoup
-from datetime import datetime, timedelta
-import time
-import re
-import json
+# test_betika.py
+from betika_scraper import fetch_betika_matches, display_matches, save_matches
 
 
-def fetch_betika_matches_final(headless=True):
-    """
-    FINAL WORKING VERSION - Extracts matches using the correct pattern
-    """
-
-    print("=" * 60)
-    print("⚽ BETIKA MATCH EXTRACTOR - FINAL WORKING VERSION")
-    print("=" * 60)
-
-    options = Options()
-    if headless:
-        options.add_argument("--headless")
-
-    options.add_argument("--width=1920")
-    options.add_argument("--height=1080")
-
-    driver = webdriver.Firefox(options=options)
-    matches = []
-
-    try:
-        print("🌐 Loading Betika...")
-        driver.get("https://www.betika.com/en-ke/s/soccer")
-
-        # Wait for page to load
-        time.sleep(8)
-
-        # Scroll to load all matches
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        time.sleep(3)
-
-        # Get the main content area (desktop-layout__content)
-        content = driver.find_element(By.CLASS_NAME, "desktop-layout__content")
-        page_text = content.text
-        lines = page_text.split('\n')
-
-        print("📊 Parsing matches...")
-
-        i = 0
-        while i < len(lines):
-            line = lines[i].strip()
-
-            # Look for league pattern (e.g., "Chile • Primera Division")
-            if '•' in line and not re.search(r'\d+\.\d+', line):
-                league = line
-
-                # Next line should be date/time
-                if i + 1 < len(lines):
-                    time_line = lines[i + 1].strip()
-                    time_match = re.search(r'(\d{2}/\d{2}),?\s*(\d{2}:\d{2})', time_line)
-
-                    if time_match:
-                        date_str = time_match.group(1)
-                        time_str = time_match.group(2)
-
-                        # Next two lines should be team names
-                        if i + 2 < len(lines) and i + 3 < len(lines):
-                            home = lines[i + 2].strip()
-                            away = lines[i + 3].strip()
-
-                            # Clean up team names
-                            home = re.sub(r'\.\.\.$', '', home).strip()
-                            away = re.sub(r'\.\.\.$', '', away).strip()
-
-                            # Skip if these are odds (contain numbers)
-                            if not re.search(r'\d+\.\d+', home) and not re.search(r'\d+\.\d+', away):
-                                # Parse date with smart year detection
-                                match_date = smart_year_detection(date_str, time_str)
-
-                                match = {
-                                    'home': home,
-                                    'away': away,
-                                    'date': date_str,
-                                    'time': time_str,
-                                    'datetime': match_date.isoformat(),
-                                    'league': league,
-                                    'bookie': 'Betika'
-                                }
-                                matches.append(match)
-                                print(f"✅ {home:20} vs {away:20} @ {date_str} {time_str}")
-
-                                # Skip ahead 4 lines (league, time, home, away)
-                                i += 4
-                                continue
-
-            i += 1
-
-        print(f"\n📊 Total matches found: {len(matches)}")
-        return matches
-
-    except Exception as e:
-        print(f"❌ Error: {e}")
-        return matches
-
-    finally:
-        driver.quit()
-
-
-def smart_year_detection(date_str, time_str):
-    """Intelligently determine the correct year for a match"""
-    now = datetime.now()
-    current_year = now.year
-
-    try:
-        day, month = map(int, date_str.split('/'))
-        hour, minute = map(int, time_str.split(':'))
-
-        # Try current year
-        match_time = datetime(current_year, month, day, hour, minute)
-
-        # If match is more than 2 months in the past, try next year
-        if match_time < now - timedelta(days=60):
-            match_time = datetime(current_year + 1, month, day, hour, minute)
-
-        # If match is more than 10 months in the future, try previous year
-        elif match_time > now + timedelta(days=300):
-            match_time = datetime(current_year - 1, month, day, hour, minute)
-
-        return match_time
-
-    except Exception as e:
-        return now
-
-
-def test_final_scraper():
-    """Test the final working scraper"""
+def test_betika_scraper():
+    """Test the Betika scraper thoroughly"""
 
     print("=" * 80)
-    print("🔬 TESTING FINAL BETIKA SCRAPER")
+    print("🔬 TESTING BETIKA SCRAPER")
     print("=" * 80)
 
-    matches = fetch_betika_matches_final(headless=True)
+    # Test 1: Can we fetch matches?
+    print("\n📋 TEST 1: Fetching matches...")
+    matches = fetch_betika_matches()
+
+    if not matches:
+        print("❌ FAILED: No matches returned")
+        return False
+
+    print(f"✅ PASSED: Got {len(matches)} matches")
+
+    # Test 2: Check data structure
+    print("\n📋 TEST 2: Validating data structure...")
+    required_fields = ['home', 'away', 'kickoff', 'date', 'league', 'bookie']
+
+    first_match = matches[0]
+    missing_fields = []
+
+    for field in required_fields:
+        if field not in first_match:
+            missing_fields.append(field)
+
+    if missing_fields:
+        print(f"❌ FAILED: Missing fields: {missing_fields}")
+        return False
+
+    print(f"✅ PASSED: All required fields present")
+
+    # Test 3: Validate kickoff time format
+    print("\n📋 TEST 3: Validating kickoff time format...")
+    import re
+
+    invalid_times = []
+    for match in matches:
+        if not re.match(r'^\d{2}:\d{2}$', match['kickoff']):
+            invalid_times.append(f"{match['home']} vs {match['away']}: {match['kickoff']}")
+
+    if invalid_times:
+        print(f"⚠️ WARNING: {len(invalid_times)} matches have invalid time format")
+        for inv in invalid_times[:3]:
+            print(f"   • {inv}")
+    else:
+        print(f"✅ PASSED: All {len(matches)} matches have valid kickoff times (HH:MM)")
+
+    # Test 4: Check for empty team names
+    print("\n📋 TEST 4: Checking team names...")
+    empty_teams = []
+    for match in matches:
+        if not match['home'] or not match['away']:
+            empty_teams.append(match)
+
+    if empty_teams:
+        print(f"❌ FAILED: {len(empty_teams)} matches have empty team names")
+        return False
+
+    print(f"✅ PASSED: All team names are non-empty")
+
+    # Test 5: Display sample matches
+    print("\n📋 TEST 5: Sample matches (first 5):")
+    for i, match in enumerate(matches[:5]):
+        print(f"   {i + 1}. {match['home']} vs {match['away']} @ {match['kickoff']}")
+        print(f"      League: {match['league']}")
+
+    # Test 6: Save to files
+    print("\n📋 TEST 6: Saving to files...")
+    try:
+        save_matches(matches, 'json')
+        save_matches(matches, 'csv')
+        print("✅ PASSED: Files saved successfully")
+    except Exception as e:
+        print(f"❌ FAILED: Could not save files: {e}")
+        return False
+
+    # Summary
+    print("\n" + "=" * 80)
+    print("✅ ALL TESTS PASSED!")
+    print("=" * 80)
+    print(f"📊 Summary:")
+    print(f"   • Total matches: {len(matches)}")
+    print(f"   • Unique leagues: {len(set(m['league'] for m in matches))}")
+
+    # Show time distribution
+    times = [m['kickoff'] for m in matches]
+    from collections import Counter
+    time_counts = Counter(times)
+    print(f"\n⏰ Kickoff times distribution:")
+    for time in sorted(time_counts.keys())[:5]:  # Show first 5
+        print(f"   • {time}: {time_counts[time]} matches")
+
+    return True
+
+
+def quick_test():
+    """Quick test to see if scraper works"""
+    print("⚡ QUICK TEST")
+    print("-" * 40)
+
+    matches = fetch_betika_matches()
 
     if matches:
         print(f"\n✅ SUCCESS! Found {len(matches)} matches")
-
-        print("\n📋 All matches:")
-        print("-" * 80)
-        for i, match in enumerate(matches, 1):
-            print(f"{i:2}. {match['home']:25} vs {match['away']:25}")
-            print(f"    {match['league']}")
-            print(f"    {match['date']} at {match['time']}")
-            print()
-
-        # Save to file
-        filename = f"betika_matches_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-        with open(filename, 'w') as f:
-            json.dump(matches, f, indent=2)
-        print(f"💾 Saved to {filename}")
-
-        # Also save as CSV for easy viewing
-        csv_filename = f"betika_matches_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
-        with open(csv_filename, 'w') as f:
-            f.write("Home,Away,Date,Time,League\n")
-            for match in matches:
-                f.write(f"{match['home']},{match['away']},{match['date']},{match['time']},\"{match['league']}\"\n")
-        print(f"💾 Saved to {csv_filename}")
-
+        print("\n📋 First 3 matches:")
+        for match in matches[:3]:
+            print(f"   • {match['home']} vs {match['away']} @ {match['kickoff']}")
+        return True
     else:
         print("❌ No matches found")
+        return False
 
 
 if __name__ == "__main__":
-    test_final_scraper()
+    print("🔧 BETIKA SCRAPER TEST SUITE")
+    print("=" * 80)
+    print("1. Quick test (just fetch and show)")
+    print("2. Full test (validate everything)")
+    print("3. Save matches only")
+
+    choice = input("\nEnter choice (1, 2, or 3): ").strip()
+
+    if choice == "1":
+        quick_test()
+    elif choice == "2":
+        test_betika_scraper()
+    elif choice == "3":
+        matches = fetch_betika_matches()
+        if matches:
+            save_matches(matches)
+            print(f"\n✅ Saved {len(matches)} matches")
+    else:
+        print("❌ Invalid choice")

@@ -180,5 +180,137 @@
     "league": "Spain: LaLiga",
     "date": "16/02",
     "timestamp": "2026-02-16 11:50:32"
+  },
+  {
+    "home": "Panathinaikos",
+    "away": "Plzen",
+    "times": {
+      "Flashscore": "23:00",
+      "MozzartBet": "20:00"
+    },
+    "league": "Europe: Europa League - Play Offs",
+    "date": "19/02",
+    "timestamp": "2026-02-19 11:01:11"
+  },
+  {
+    "home": "Ludogorets",
+    "away": "Ferencvaros",
+    "times": {
+      "Flashscore": "23:00",
+      "MozzartBet": "20:00"
+    },
+    "league": "Europe: Europa League - Play Offs",
+    "date": "19/02",
+    "timestamp": "2026-02-19 11:01:11"
+  },
+  {
+    "home": "Lille",
+    "away": "Crvena zvezda",
+    "times": {
+      "Flashscore": "23:00",
+      "MozzartBet": "20:00"
+    },
+    "league": "Europe: Europa League - Play Offs",
+    "date": "19/02",
+    "timestamp": "2026-02-19 11:01:11"
+  },
+  {
+    "home": "Celtic",
+    "away": "Stuttgart",
+    "times": {
+      "Flashscore": "23:00",
+      "MozzartBet": "20:00"
+    },
+    "league": "Europe: Europa League - Play Offs",
+    "date": "19/02",
+    "timestamp": "2026-02-19 11:01:11"
+  },
+  {
+    "home": "Ludogorets",
+    "away": "Ferencvaros",
+    "times": {
+      "Flashscore": "23:00",
+      "MozzartBet": "20:00"
+    },
+    "league": "Europe: Europa League - Play Offs",
+    "date": "19/02",
+    "timestamp": "2026-02-19 11:31:51"
+  },
+  {
+    "home": "Panathinaikos",
+    "away": "Plzen",
+    "times": {
+      "Flashscore": "23:00",
+      "MozzartBet": "20:00"
+    },
+    "league": "Europe: Europa League - Play Offs",
+    "date": "19/02",
+    "timestamp": "2026-02-19 11:31:51"
+  },
+  {
+    "home": "Celtic",
+    "away": "Stuttgart",
+    "times": {
+      "Flashscore": "23:00",
+      "MozzartBet": "20:00"
+    },
+    "league": "Europe: Europa League - Play Offs",
+    "date": "19/02",
+    "timestamp": "2026-02-19 11:31:51"
+  },
+  {
+    "home": "Lille",
+    "away": "Crvena zvezda",
+    "times": {
+      "Flashscore": "23:00",
+      "MozzartBet": "20:00"
+    },
+    "league": "Europe: Europa League - Play Offs",
+    "date": "19/02",
+    "timestamp": "2026-02-19 11:31:51"
+  },
+  {
+    "home": "Panathinaikos",
+    "away": "Plzen",
+    "times": {
+      "Flashscore": "23:00",
+      "MozzartBet": "20:00"
+    },
+    "league": "Europe: Europa League - Play Offs",
+    "date": "19/02",
+    "timestamp": "2026-02-19 11:36:22"
+  },
+  {
+    "home": "Ludogorets",
+    "away": "Ferencvaros",
+    "times": {
+      "Flashscore": "23:00",
+      "MozzartBet": "20:00"
+    },
+    "league": "Europe: Europa League - Play Offs",
+    "date": "19/02",
+    "timestamp": "2026-02-19 11:36:22"
+  },
+  {
+    "home": "Celtic",
+    "away": "Stuttgart",
+    "times": {
+      "Flashscore": "23:00",
+      "MozzartBet": "20:00"
+    },
+    "league": "Europe: Europa League - Play Offs",
+    "date": "19/02",
+    "timestamp": "2026-02-19 11:36:22"
+  },
+  {
+    "home": "Lille",
+    "away": "Crvena zvezda",
+    "times": {
+      "Flashscore": "23:00",
+      "MozzartBet": "20:00"
+    },
+    "league": "Europe: Europa League - Play Offs",
+    "date": "19/02",
+    "timestamp": "2026-02-19 11:36:22"
   }
 ]

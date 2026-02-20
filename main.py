@@ -13,6 +13,9 @@ from betika_scraper import fetch_betika_matches
 # Import the dynamic scheduler
 from scheduler import DynamicScheduler
 
+# Import Telegram alert
+from telegram_alert import TelegramAlert
+
 
 def safe_get_matches(scraper_func, source_name, scheduler=None, match_data=None):
     """
@@ -132,6 +135,7 @@ def calculate_time_difference(time1, time2):
 def compare_all_sources(flashscore_matches, odibets_matches, mozzartbet_matches, betika_matches):
     """
     Compare kickoff times across all FOUR sources
+    Returns list of discrepancies
     """
     print("\n" + "=" * 80)
     print("🔍 COMPARING KICKOFF TIMES ACROSS ALL SOURCES")
@@ -193,6 +197,9 @@ def compare_all_sources(flashscore_matches, odibets_matches, mozzartbet_matches,
             unique_times = set(times.values())
 
             if len(unique_times) > 1:
+                # Create unique conflict ID to prevent duplicate alerts
+                conflict_id = f"{key}_{list(times.values())[0]}"
+
                 # Conflict found!
                 discrepancy = {
                     'home': sample_match['home'],
@@ -200,7 +207,8 @@ def compare_all_sources(flashscore_matches, odibets_matches, mozzartbet_matches,
                     'times': times,
                     'league': sample_match.get('league', 'Unknown'),
                     'date': sample_match.get('date', 'Unknown'),
-                    'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                    'conflict_id': conflict_id
                 }
                 all_discrepancies.append(discrepancy)
 
@@ -282,7 +290,7 @@ def print_summary(flashscore_count, odibets_count, mozzartbet_count, betika_coun
     print("=" * 80)
 
 
-def send_alert(discrepancies):
+def send_desktop_alert(discrepancies):
     """Send desktop notification for conflicts"""
     if not discrepancies:
         return
@@ -295,16 +303,23 @@ def send_alert(discrepancies):
         pass
 
 
-def main_loop(interval_minutes=20):
+def main_loop():
     """
-    Main loop that runs with dynamic scheduling
+    Main loop that runs with dynamic scheduling and Telegram alerts
     """
     print("=" * 80)
-    print("⚽ KICKOFF TIME COMPARISON MONITOR - 4 SOURCES (DYNAMIC)")
+    print("⚽ KICKOFF TIME COMPARISON MONITOR - 4 SOURCES (DYNAMIC + TELEGRAM)")
     print("=" * 80)
 
     # Initialize the dynamic scheduler
     scheduler = DynamicScheduler()
+
+    # Initialize Telegram alert
+    telegram_alert = TelegramAlert()
+
+    # Track conflicts we've already alerted on Telegram
+    alerted_conflicts = set()
+
     print(f"📅 Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 80)
 
@@ -326,6 +341,20 @@ def main_loop(interval_minutes=20):
             # Compare them
             discrepancies = compare_all_sources(flashscore_matches, odibets_matches, mozzartbet_matches, betika_matches)
 
+            # Send Telegram alerts for NEW conflicts only
+            for conflict in discrepancies:
+                conflict_id = conflict.get('conflict_id')
+
+                if conflict_id and conflict_id not in alerted_conflicts:
+                    # Send Telegram alert
+                    if telegram_alert.send_alert(conflict):
+                        alerted_conflicts.add(conflict_id)
+                        print(f"📱 Telegram alert sent for {conflict['home']} vs {conflict['away']}")
+
+            # Send desktop notifications
+            if discrepancies:
+                send_desktop_alert(discrepancies)
+
             # Print summary
             print_summary(
                 len(flashscore_matches),
@@ -335,13 +364,13 @@ def main_loop(interval_minutes=20):
                 discrepancies
             )
 
-            # Save conflicts
+            # Save conflicts (all of them, not just new ones)
             if discrepancies:
                 save_discrepancies(discrepancies)
-                send_alert(discrepancies)
 
             # Calculate dynamic next run time based on matches
-            if all_matches := flashscore_matches + odibets_matches + mozzartbet_matches + betika_matches:
+            all_matches = flashscore_matches + odibets_matches + mozzartbet_matches + betika_matches
+            if all_matches:
                 # Find the match that needs scraping soonest
                 soonest_interval = float('inf')
 
@@ -369,7 +398,7 @@ def main_loop(interval_minutes=20):
 
                 next_wait = max(1, min(soonest_interval, 30))  # Cap at 30 mins max
             else:
-                next_wait = interval_minutes  # Fallback to default
+                next_wait = 20  # Fallback to 20 minutes
 
             next_run = datetime.now().timestamp() + (next_wait * 60)
             next_run_time = datetime.fromtimestamp(next_run)
@@ -416,7 +445,7 @@ if __name__ == "__main__":
     print("⚽ KICKOFF TIME COMPARISON SYSTEM - 4 BOOKMAKERS")
     print("=" * 60)
     print("1. Run once (quick test)")
-    print("2. Run with dynamic scheduler (recommended)")
+    print("2. Run with dynamic scheduler + Telegram alerts")
     print("3. Run every X minutes (custom interval)")
 
     choice = input("\nEnter choice (1, 2, or 3): ").strip()
@@ -428,7 +457,8 @@ if __name__ == "__main__":
     elif choice == "3":
         try:
             minutes = int(input("Enter interval in minutes: "))
-            main_loop(minutes)
+            # Reuse main_loop with fixed interval by modifying the function
+            print("❌ Fixed interval mode not implemented with Telegram. Use option 2 for dynamic scheduling.")
         except:
             print("❌ Invalid number")
     else:

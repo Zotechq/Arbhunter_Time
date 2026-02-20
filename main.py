@@ -5,15 +5,19 @@ import json
 import os
 
 # Import your scrapers
-from flashscore_scraper import get_flashscore_matches  # 👈 CHANGED from flashscore_api
+from flashscore_scraper import get_flashscore_matches
 from odibets_scraper import fetch_odibets_matches
 from mozzart_scraper import fetch_mozzartbet_matches
 from betika_scraper import fetch_betika_matches
 
+# Import the dynamic scheduler
+from scheduler import DynamicScheduler
 
-def safe_get_matches(scraper_func, source_name):
+
+def safe_get_matches(scraper_func, source_name, scheduler=None, match_data=None):
     """
     Safely fetch matches and ensure they have the required fields
+    Now with scheduler integration for failure tracking
     """
     try:
         print(f"\n📡 Fetching from {source_name}...")
@@ -30,10 +34,14 @@ def safe_get_matches(scraper_func, source_name):
         # Check what we got
         if matches is None:
             print(f"⚠️ {source_name} returned None")
+            if scheduler:
+                scheduler.record_failure(source_name)
             return []
 
         if not isinstance(matches, list):
             print(f"⚠️ {source_name} returned {type(matches)}, expected list")
+            if scheduler:
+                scheduler.record_failure(source_name)
             return []
 
         # Filter out matches without kickoff times
@@ -53,15 +61,23 @@ def safe_get_matches(scraper_func, source_name):
                     print(
                         f"⚠️ Skipping match without kickoff: {match.get('home', 'Unknown')} vs {match.get('away', 'Unknown')}")
 
+        # Record success if we got valid matches
+        if scheduler and valid_matches:
+            scheduler.record_success(source_name)
+
         print(f"✅ {source_name}: {len(valid_matches)} valid matches with kickoff times")
         return valid_matches
 
     except TypeError as e:
         print(f"❌ TypeError in {source_name}: {e}")
         print(f"   This usually means you're trying to call a list as a function")
+        if scheduler:
+            scheduler.record_failure(source_name)
         return []
     except Exception as e:
         print(f"❌ Error fetching from {source_name}: {e}")
+        if scheduler:
+            scheduler.record_failure(source_name)
         return []
 
 
@@ -144,7 +160,8 @@ def compare_all_sources(flashscore_matches, odibets_matches, mozzartbet_matches,
     betika_dict = {normalize_match_key(m['home'], m['away']): m for m in betika_matches}
 
     # Get all unique match keys
-    all_keys = set(flashscore_dict.keys()) | set(odibets_dict.keys()) | set(mozzartbet_dict.keys()) | set(betika_dict.keys())
+    all_keys = set(flashscore_dict.keys()) | set(odibets_dict.keys()) | set(mozzartbet_dict.keys()) | set(
+        betika_dict.keys())
 
     print(f"\n📊 Total unique matches found across all sources: {len(all_keys)}")
 
@@ -280,12 +297,14 @@ def send_alert(discrepancies):
 
 def main_loop(interval_minutes=20):
     """
-    Main loop that runs every X minutes
+    Main loop that runs with dynamic scheduling
     """
     print("=" * 80)
-    print("⚽ KICKOFF TIME COMPARISON MONITOR - 4 SOURCES")
+    print("⚽ KICKOFF TIME COMPARISON MONITOR - 4 SOURCES (DYNAMIC)")
     print("=" * 80)
-    print(f"🕒 Checking every {interval_minutes} minutes")
+
+    # Initialize the dynamic scheduler
+    scheduler = DynamicScheduler()
     print(f"📅 Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 80)
 
@@ -298,11 +317,11 @@ def main_loop(interval_minutes=20):
         print(f"{'#' * 60}")
 
         try:
-            # Safely fetch matches from all FOUR sources
-            flashscore_matches = safe_get_matches(get_flashscore_matches, "Flashscore")
-            odibets_matches = safe_get_matches(fetch_odibets_matches, "Odibets")
-            mozzartbet_matches = safe_get_matches(fetch_mozzartbet_matches, "MozzartBet")
-            betika_matches = safe_get_matches(fetch_betika_matches, "Betika")
+            # Safely fetch matches from all FOUR sources with scheduler tracking
+            flashscore_matches = safe_get_matches(get_flashscore_matches, "Flashscore", scheduler)
+            odibets_matches = safe_get_matches(fetch_odibets_matches, "Odibets", scheduler)
+            mozzartbet_matches = safe_get_matches(fetch_mozzartbet_matches, "MozzartBet", scheduler)
+            betika_matches = safe_get_matches(fetch_betika_matches, "Betika", scheduler)
 
             # Compare them
             discrepancies = compare_all_sources(flashscore_matches, odibets_matches, mozzartbet_matches, betika_matches)
@@ -321,14 +340,44 @@ def main_loop(interval_minutes=20):
                 save_discrepancies(discrepancies)
                 send_alert(discrepancies)
 
-            # Wait for next run
-            next_run = datetime.now().timestamp() + (interval_minutes * 60)
+            # Calculate dynamic next run time based on matches
+            if all_matches := flashscore_matches + odibets_matches + mozzartbet_matches + betika_matches:
+                # Find the match that needs scraping soonest
+                soonest_interval = float('inf')
+
+                for match in all_matches:
+                    match_key = scheduler.generate_match_key(
+                        match['home'],
+                        match['away'],
+                        match['date']
+                    )
+
+                    minutes_until = scheduler.parse_match_datetime(
+                        match['date'],
+                        match['kickoff']
+                    )
+
+                    should_scrape, next_in = scheduler.should_scrape(
+                        match_key,
+                        minutes_until,
+                        match.get('league', 'Football'),
+                        match['source']
+                    )
+
+                    if next_in < soonest_interval:
+                        soonest_interval = next_in
+
+                next_wait = max(1, min(soonest_interval, 30))  # Cap at 30 mins max
+            else:
+                next_wait = interval_minutes  # Fallback to default
+
+            next_run = datetime.now().timestamp() + (next_wait * 60)
             next_run_time = datetime.fromtimestamp(next_run)
 
-            print(f"\n⏳ Waiting {interval_minutes} minutes until next run...")
+            print(f"\n⏳ Dynamic scheduling: Next check in {next_wait:.1f} minutes")
             print(f"📅 Next run at: {next_run_time.strftime('%Y-%m-%d %H:%M:%S')}")
 
-            time.sleep(interval_minutes * 60)
+            time.sleep(next_wait * 60)
 
         except KeyboardInterrupt:
             print("\n\n👋 Stopping monitor...")
@@ -367,7 +416,7 @@ if __name__ == "__main__":
     print("⚽ KICKOFF TIME COMPARISON SYSTEM - 4 BOOKMAKERS")
     print("=" * 60)
     print("1. Run once (quick test)")
-    print("2. Run every 20 minutes (monitor mode)")
+    print("2. Run with dynamic scheduler (recommended)")
     print("3. Run every X minutes (custom interval)")
 
     choice = input("\nEnter choice (1, 2, or 3): ").strip()
@@ -375,7 +424,7 @@ if __name__ == "__main__":
     if choice == "1":
         quick_test()
     elif choice == "2":
-        main_loop(20)
+        main_loop()
     elif choice == "3":
         try:
             minutes = int(input("Enter interval in minutes: "))

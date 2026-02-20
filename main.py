@@ -5,9 +5,10 @@ import json
 import os
 
 # Import your scrapers
-from flashscore_api import get_flashscore_matches
+from flashscore_scraper import get_flashscore_matches  # 👈 CHANGED from flashscore_api
 from odibets_scraper import fetch_odibets_matches
 from mozzart_scraper import fetch_mozzartbet_matches
+from betika_scraper import fetch_betika_matches
 
 
 def safe_get_matches(scraper_func, source_name):
@@ -112,9 +113,9 @@ def calculate_time_difference(time1, time2):
         return 999
 
 
-def compare_all_sources(flashscore_matches, odibets_matches, mozzartbet_matches):
+def compare_all_sources(flashscore_matches, odibets_matches, mozzartbet_matches, betika_matches):
     """
-    Compare kickoff times across all three sources
+    Compare kickoff times across all FOUR sources
     """
     print("\n" + "=" * 80)
     print("🔍 COMPARING KICKOFF TIMES ACROSS ALL SOURCES")
@@ -127,21 +128,23 @@ def compare_all_sources(flashscore_matches, odibets_matches, mozzartbet_matches)
     print(f"\n📅 Today's date: {today}")
     print(f"📅 Tomorrow's date: {tomorrow}")
 
-    # Separate Flashscore matches by date (API returns tomorrow's matches)
+    # Flashscore web scraper shows today's matches (already in Kenya time)
     flashscore_today = [m for m in flashscore_matches if m.get('date') == today]
     flashscore_tomorrow = [m for m in flashscore_matches if m.get('date') == tomorrow]
 
     print(f"\n📊 Flashscore: {len(flashscore_today)} today, {len(flashscore_tomorrow)} tomorrow")
     print(f"📊 Odibets: {len(odibets_matches)} matches")
     print(f"📊 MozzartBet: {len(mozzartbet_matches)} matches")
+    print(f"📊 Betika: {len(betika_matches)} matches")
 
     # Create lookup dictionaries
     flashscore_dict = {normalize_match_key(m['home'], m['away']): m for m in flashscore_matches}
     odibets_dict = {normalize_match_key(m['home'], m['away']): m for m in odibets_matches}
     mozzartbet_dict = {normalize_match_key(m['home'], m['away']): m for m in mozzartbet_matches}
+    betika_dict = {normalize_match_key(m['home'], m['away']): m for m in betika_matches}
 
     # Get all unique match keys
-    all_keys = set(flashscore_dict.keys()) | set(odibets_dict.keys()) | set(mozzartbet_dict.keys())
+    all_keys = set(flashscore_dict.keys()) | set(odibets_dict.keys()) | set(mozzartbet_dict.keys()) | set(betika_dict.keys())
 
     print(f"\n📊 Total unique matches found across all sources: {len(all_keys)}")
 
@@ -160,6 +163,9 @@ def compare_all_sources(flashscore_matches, odibets_matches, mozzartbet_matches)
         if key in mozzartbet_dict:
             match_info['mozzartbet'] = mozzartbet_dict[key]
             times['MozzartBet'] = mozzartbet_dict[key]['kickoff']
+        if key in betika_dict:
+            match_info['betika'] = betika_dict[key]
+            times['Betika'] = betika_dict[key]['kickoff']
 
         # If match appears in at least 2 sources, check for conflicts
         if len(times) >= 2:
@@ -233,8 +239,8 @@ def save_discrepancies(discrepancies):
         print(f"⚠️ Could not update log: {e}")
 
 
-def print_summary(flashscore_count, odibets_count, mozzartbet_count, discrepancies):
-    """Print summary of current run"""
+def print_summary(flashscore_count, odibets_count, mozzartbet_count, betika_count, discrepancies):
+    """Print summary of current run with all FOUR sources"""
     print("\n" + "=" * 80)
     print("📊 RUN SUMMARY")
     print("=" * 80)
@@ -242,7 +248,8 @@ def print_summary(flashscore_count, odibets_count, mozzartbet_count, discrepanci
     print(f"📈 Flashscore matches: {flashscore_count}")
     print(f"📈 Odibets matches: {odibets_count}")
     print(f"📈 MozzartBet matches: {mozzartbet_count}")
-    print(f"📈 TOTAL matches: {flashscore_count + odibets_count + mozzartbet_count}")
+    print(f"📈 Betika matches: {betika_count}")
+    print(f"📈 TOTAL matches: {flashscore_count + odibets_count + mozzartbet_count + betika_count}")
     print(f"🚨 Conflicts found: {len(discrepancies)}")
 
     if discrepancies:
@@ -276,7 +283,7 @@ def main_loop(interval_minutes=20):
     Main loop that runs every X minutes
     """
     print("=" * 80)
-    print("⚽ KICKOFF TIME COMPARISON MONITOR - 3 SOURCES")
+    print("⚽ KICKOFF TIME COMPARISON MONITOR - 4 SOURCES")
     print("=" * 80)
     print(f"🕒 Checking every {interval_minutes} minutes")
     print(f"📅 Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -291,19 +298,21 @@ def main_loop(interval_minutes=20):
         print(f"{'#' * 60}")
 
         try:
-            # Safely fetch matches from all three sources
-            flashscore_matches = safe_get_matches(get_flashscore_matches, "Flashscore (API)")
+            # Safely fetch matches from all FOUR sources
+            flashscore_matches = safe_get_matches(get_flashscore_matches, "Flashscore")
             odibets_matches = safe_get_matches(fetch_odibets_matches, "Odibets")
             mozzartbet_matches = safe_get_matches(fetch_mozzartbet_matches, "MozzartBet")
+            betika_matches = safe_get_matches(fetch_betika_matches, "Betika")
 
             # Compare them
-            discrepancies = compare_all_sources(flashscore_matches, odibets_matches, mozzartbet_matches)
+            discrepancies = compare_all_sources(flashscore_matches, odibets_matches, mozzartbet_matches, betika_matches)
 
             # Print summary
             print_summary(
                 len(flashscore_matches),
                 len(odibets_matches),
                 len(mozzartbet_matches),
+                len(betika_matches),
                 discrepancies
             )
 
@@ -332,19 +341,21 @@ def main_loop(interval_minutes=20):
 
 def quick_test():
     """Run one comparison immediately"""
-    print("🔧 QUICK TEST MODE - 3 SOURCES")
+    print("🔧 QUICK TEST MODE - 4 SOURCES")
     print("=" * 60)
 
-    flashscore_matches = safe_get_matches(get_flashscore_matches, "Flashscore (API)")
+    flashscore_matches = safe_get_matches(get_flashscore_matches, "Flashscore")
     odibets_matches = safe_get_matches(fetch_odibets_matches, "Odibets")
     mozzartbet_matches = safe_get_matches(fetch_mozzartbet_matches, "MozzartBet")
+    betika_matches = safe_get_matches(fetch_betika_matches, "Betika")
 
-    discrepancies = compare_all_sources(flashscore_matches, odibets_matches, mozzartbet_matches)
+    discrepancies = compare_all_sources(flashscore_matches, odibets_matches, mozzartbet_matches, betika_matches)
 
     print_summary(
         len(flashscore_matches),
         len(odibets_matches),
         len(mozzartbet_matches),
+        len(betika_matches),
         discrepancies
     )
 
@@ -353,7 +364,7 @@ def quick_test():
 
 
 if __name__ == "__main__":
-    print("⚽ KICKOFF TIME COMPARISON SYSTEM - 3 BOOKMAKERS")
+    print("⚽ KICKOFF TIME COMPARISON SYSTEM - 4 BOOKMAKERS")
     print("=" * 60)
     print("1. Run once (quick test)")
     print("2. Run every 20 minutes (monitor mode)")

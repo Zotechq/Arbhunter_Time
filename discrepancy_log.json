@@ -312,5 +312,150 @@
     "league": "Europe: Europa League - Play Offs",
     "date": "19/02",
     "timestamp": "2026-02-19 11:36:22"
+  },
+  {
+    "home": "FC Nordsjaelland",
+    "away": "Vejle BK",
+    "times": {
+      "Odibets": "21:00",
+      "Betika": "18:00"
+    },
+    "league": "Football",
+    "date": "20/02",
+    "timestamp": "2026-02-20 11:44:51"
+  },
+  {
+    "home": "Blackburn",
+    "away": "Preston",
+    "times": {
+      "Flashscore": "23:00",
+      "MozzartBet": "23:00",
+      "Betika": "20:00"
+    },
+    "league": "England: Championship",
+    "date": "20/02",
+    "timestamp": "2026-02-20 11:44:51"
+  },
+  {
+    "home": "Athletic Bilbao",
+    "away": "Elche CF",
+    "times": {
+      "Odibets": "23:00",
+      "Betika": "20:00"
+    },
+    "league": "Football",
+    "date": "20/02",
+    "timestamp": "2026-02-20 11:44:51"
+  },
+  {
+    "home": "Kakamega Homeboyz",
+    "away": "Sofapaka",
+    "times": {
+      "Flashscore": "10:00",
+      "Betika": "13:00"
+    },
+    "league": "Football",
+    "date": "20/02",
+    "timestamp": "2026-02-20 12:21:22"
+  },
+  {
+    "home": "Persija Jakarta",
+    "away": "PSM Makassar",
+    "times": {
+      "Flashscore": "13:30",
+      "Betika": "16:30"
+    },
+    "league": "Football",
+    "date": "20/02",
+    "timestamp": "2026-02-20 12:21:22"
+  },
+  {
+    "home": "Blackburn",
+    "away": "Preston",
+    "times": {
+      "Flashscore": "20:00",
+      "MozzartBet": "23:00",
+      "Betika": "23:00"
+    },
+    "league": "Football",
+    "date": "20/02",
+    "timestamp": "2026-02-20 12:21:22"
+  },
+  {
+    "home": "Brest",
+    "away": "Marseille",
+    "times": {
+      "Flashscore": "19:45",
+      "Betika": "22:45"
+    },
+    "league": "Football",
+    "date": "20/02",
+    "timestamp": "2026-02-20 12:21:22"
+  },
+  {
+    "home": "Oran",
+    "away": "MC Alger",
+    "times": {
+      "Flashscore": "21:00",
+      "MozzartBet": "00:00"
+    },
+    "league": "Football",
+    "date": "20/02",
+    "timestamp": "2026-02-20 12:21:22"
+  },
+  {
+    "home": "Township Rollers",
+    "away": "Extension Gunners",
+    "times": {
+      "Flashscore": "17:00FRO",
+      "Betika": "20:00"
+    },
+    "league": "Football",
+    "date": "20/02",
+    "timestamp": "2026-02-20 12:21:22"
+  },
+  {
+    "home": "Greuther Furth",
+    "away": "Arminia Bielefeld",
+    "times": {
+      "Flashscore": "17:30",
+      "Odibets": "20:30"
+    },
+    "league": "Football",
+    "date": "20/02",
+    "timestamp": "2026-02-20 12:21:22"
+  },
+  {
+    "home": "Sassuolo",
+    "away": "Verona",
+    "times": {
+      "Flashscore": "19:45",
+      "MozzartBet": "22:45"
+    },
+    "league": "Football",
+    "date": "20/02",
+    "timestamp": "2026-02-20 12:21:22"
+  },
+  {
+    "home": "Boca Juniors",
+    "away": "Racing Club",
+    "times": {
+      "Flashscore": "23:00",
+      "MozzartBet": "02:00"
+    },
+    "league": "Football",
+    "date": "20/02",
+    "timestamp": "2026-02-20 12:21:22"
+  },
+  {
+    "home": "Rizespor",
+    "away": "Kocaelispor",
+    "times": {
+      "Flashscore": "17:00",
+      "MozzartBet": "20:00"
+    },
+    "league": "Football",
+    "date": "20/02",
+    "timestamp": "2026-02-20 12:21:22"
   }
 ]
